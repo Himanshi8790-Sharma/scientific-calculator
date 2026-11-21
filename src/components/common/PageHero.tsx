@@ -17,7 +17,19 @@ export function PageHero({ eyebrow, title, text, icon }: PageHeroProps) {
             <span>{eyebrow}</span>
           </div>
         )}
-        <h1>{title}</h1>
+
+       <h1 className="page-hero-title">
+  {title.split(" ").map((word, index) => (
+    <span
+      key={index}
+      className="page-hero-word"
+      style={{ animationDelay: `${index * 180}ms` }}
+    >
+      {word}
+    </span>
+  ))}
+</h1>
+
         <p>{text}</p>
       </div>
     </section>
