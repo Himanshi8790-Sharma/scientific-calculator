@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Page } from "./types";
 import { pageTitles } from "./data/navigation";
 import { Navbar } from "./components/common/Navbar";
 import { Footer } from "./components/common/Footer";
-
-// Page imports
 import { HomePage } from "./pages/HomePage";
 import { CalculatorPage } from "./pages/CalculatorPage";
 import { RulesPage } from "./pages/RulesPage";
@@ -18,31 +16,29 @@ import { ContactPage } from "./pages/ContactPage";
 import { LegalPage } from "./pages/LegalPage";
 
 export default function App() {
-  const getInitialPage = (): Page => {
-    const hash = window.location.hash.replace("#/", "").replace("#", "");
-    return pageTitles[hash as Page] ? (hash as Page) : "home";
-  };
-
-  const [page, setPage] = useState<Page>(getInitialPage);
+  const initial = (window.location.pathname.replace("/", "") || "home") as Page;
+  const [page, setPage] = useState<Page>(
+    pageTitles[initial] ? initial : "home",
+  );
 
   const go = (next: Page) => {
-    window.location.hash = `/${next}`;
+    window.history.pushState({}, "", `/${next}`);
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const next = window.location.hash.replace("#/", "").replace("#", "") as Page;
+    const update = () => {
+      const next = (window.location.pathname.replace("/", "") || "home") as Page;
       setPage(pageTitles[next] ? next : "home");
     };
 
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    window.addEventListener("popstate", update);
+    return () => window.removeEventListener("popstate", update);
   }, []);
 
   useEffect(() => {
-    document.title = `${pageTitles[page]} | SigFigLab`;
+    document.title = `${pageTitles[page] || "SigFigLab"} | SigFigLab`;
   }, [page]);
 
   const renderContent = () => {
@@ -77,11 +73,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#142c44] flex flex-col justify-between selection:bg-[#cfe6fb] selection:text-[#0a2b4b]">
-      <div>
-        <Navbar page={page} go={go} />
-        {renderContent()}
-      </div>
+    <div className="min-h-screen bg-white text-[#142c44]">
+      <Navbar page={page} go={go} />
+      {renderContent()}
       <Footer go={go} />
     </div>
   );

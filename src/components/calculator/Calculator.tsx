@@ -30,8 +30,11 @@ export function Calculator({ compact = false }: CalculatorProps) {
   const valid = isValidNumber(value);
   const secondValid = isValidNumber(secondValue);
   const count = valid ? countSignificantFigures(value) : 0;
+
   const calculation =
-    valid && secondValid ? calculateWithSigFigs(value, operation, secondValue) : null;
+    valid && secondValid
+      ? calculateWithSigFigs(value, operation, secondValue)
+      : null;
 
   const result = useMemo(() => {
     if (!valid) return "";
@@ -64,29 +67,38 @@ export function Calculator({ compact = false }: CalculatorProps) {
   }
 
   return (
-    <div className={`calculator-shell ${compact ? "compact" : ""}`}>
-      <ModeTabs currentMode={mode} onSelectMode={setMode} />
+    <div
+      className={`calculator-shell overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-slate-900/[0.06] transition duration-300 hover:shadow-2xl hover:shadow-blue-900/[0.08] ${
+        compact ? "compact" : ""
+      }`}
+    >
+      {/* Mode Tabs */}
+      <div className="border-b border-slate-100 bg-white p-2">
+        <ModeTabs currentMode={mode} onSelectMode={setMode} />
+      </div>
 
       <div className="grid lg:grid-cols-[1.05fr_.95fr]">
         {/* Left Input Pane */}
-        <div className="p-5 sm:p-7 lg:border-r lg:border-slate-200">
-          <div className="mb-5 flex items-center justify-between">
+        <div className="p-5 sm:p-7 lg:border-r lg:border-slate-100">
+          <div className="mb-5 flex items-center justify-between gap-3">
             <div>
-              <div className="text-sm font-semibold text-[#102e50]">
+              <h3 className="text-sm font-bold text-[#102e50]">
                 {mode === "calculate" ? "Enter your values" : "Enter a number"}
-              </div>
-              <div className="mt-1 text-xs text-slate-500">
-                Decimals and scientific notation (e.g. 4.5e-3) are supported
-              </div>
+              </h3>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                Decimals and scientific notation are supported
+              </p>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+
+            <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
               Live result
             </span>
           </div>
 
+          {/* Input Fields */}
           {mode === "calculate" ? (
-            <div className="grid grid-cols-[1fr_64px_1fr] gap-2">
+            <div className="grid grid-cols-[1fr_48px_1fr] gap-2 sm:grid-cols-[1fr_56px_1fr]">
               <input
                 aria-label="First value"
                 value={value}
@@ -94,14 +106,17 @@ export function Calculator({ compact = false }: CalculatorProps) {
                   setValue(e.target.value);
                   setTouched(true);
                 }}
-                className={`number-input ${touched && !valid ? "invalid" : ""}`}
+                className={`number-input min-w-0 rounded-xl transition-all focus:ring-4 focus:ring-blue-100 ${
+                  touched && !valid ? "invalid" : ""
+                }`}
                 placeholder="Value A"
               />
+
               <select
                 aria-label="Operation"
                 value={operation}
                 onChange={(e) => setOperation(e.target.value as Operation)}
-                className="number-input px-3 text-center font-bold text-lg cursor-pointer"
+                className="number-input cursor-pointer rounded-xl px-2 text-center text-lg font-bold transition focus:ring-4 focus:ring-blue-100"
               >
                 {(["+", "-", "×", "÷"] as Operation[]).map((op) => (
                   <option key={op} value={op}>
@@ -109,11 +124,14 @@ export function Calculator({ compact = false }: CalculatorProps) {
                   </option>
                 ))}
               </select>
+
               <input
                 aria-label="Second value"
                 value={secondValue}
                 onChange={(e) => setSecondValue(e.target.value)}
-                className={`number-input ${!secondValid ? "invalid" : ""}`}
+                className={`number-input min-w-0 rounded-xl transition-all focus:ring-4 focus:ring-blue-100 ${
+                  !secondValid ? "invalid" : ""
+                }`}
                 placeholder="Value B"
               />
             </div>
@@ -125,11 +143,14 @@ export function Calculator({ compact = false }: CalculatorProps) {
                 setValue(e.target.value);
                 setTouched(true);
               }}
-              className={`number-input ${touched && !valid ? "invalid" : ""}`}
+              className={`number-input rounded-xl transition-all focus:ring-4 focus:ring-blue-100 ${
+                touched && !valid ? "invalid" : ""
+              }`}
               placeholder="e.g. 0.004560"
             />
           )}
 
+          {/* Validation Message */}
           {touched && !valid && (
             <p className="mt-2 flex items-center gap-1 text-xs font-medium text-red-600">
               <Icon name="info" size={14} />
@@ -137,17 +158,21 @@ export function Calculator({ compact = false }: CalculatorProps) {
             </p>
           )}
 
+          {/* Significant Figures Selection */}
           {mode !== "count" && mode !== "calculate" && (
-            <div className="mt-5">
+            <div className="mt-5 animate-[fadeInUp_.3s_ease-out_both]">
               <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Significant figures
               </label>
+
               <div className="flex gap-2">
                 {[2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
                     onClick={() => setFigures(n)}
-                    className={`figure-button transition ${figures === n ? "active" : ""}`}
+                    className={`figure-button transition duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
+                      figures === n ? "active" : ""
+                    }`}
                     aria-pressed={figures === n}
                   >
                     {n}
@@ -157,41 +182,49 @@ export function Calculator({ compact = false }: CalculatorProps) {
             </div>
           )}
 
+          {/* Presets */}
           <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-slate-500">
             <span className="font-medium text-slate-400">Try presets:</span>
+
             {["1200", "0.00340", "6.022e23"].map((ex) => (
               <button
                 key={ex}
                 onClick={() => useExample(ex)}
-                className="rounded-lg bg-slate-100 px-2.5 py-1.5 font-mono text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-mono text-xs font-medium text-slate-700 transition duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 active:scale-95"
               >
                 {ex}
               </button>
             ))}
           </div>
 
-          <div className="mt-7 flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50/70 p-4 text-xs leading-5 text-[#315b83]">
-            <span className="mt-0.5 text-blue-600 shrink-0">
+          {/* Precision Note */}
+          <div className="mt-6 flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50/70 p-3.5 text-xs leading-5 text-[#315b83]">
+            <span className="mt-0.5 shrink-0 text-blue-600">
               <Icon name="info" size={15} />
             </span>
+
             <div>
-              <span className="font-semibold">Precision note:</span> Trailing zeros after a decimal point are significant. Enter values exactly as measured in your experiment or assignment.
+              <span className="font-semibold">Precision note: </span>
+              Trailing zeros after a decimal point are significant. Enter values
+              exactly as measured in your experiment or assignment.
             </div>
           </div>
         </div>
 
         {/* Right Result Pane */}
-        <div className="bg-[#f8fbff] p-5 sm:p-7 flex flex-col justify-between">
+        <div className="flex flex-col justify-between bg-gradient-to-br from-[#f8fbff] to-[#f1f7fd] p-5 sm:p-7">
           <div>
+            {/* Result Header */}
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-[.14em] text-slate-500 flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[.14em] text-slate-500">
                 <Icon name="scale" size={14} className="text-[#2f75bd]" />
                 Result
               </span>
+
               <button
                 onClick={copy}
                 disabled={!result}
-                className="copy-button transition hover:text-[#174f84]"
+                className="copy-button inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition duration-200 hover:bg-white hover:text-[#174f84] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="Copy result"
               >
                 <Icon name={copied ? "check" : "copy"} size={16} />
@@ -199,16 +232,20 @@ export function Calculator({ compact = false }: CalculatorProps) {
               </button>
             </div>
 
+            {/* Loading State */}
             {isCalculating ? (
               <div className="grid min-h-64 place-items-center" aria-live="polite">
                 <div className="text-center">
                   <div className="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-blue-100 border-t-[#2f75bd]" />
-                  <p className="mt-3 text-xs font-medium text-slate-500">Evaluating precision…</p>
+                  <p className="mt-3 text-xs font-medium text-slate-500">
+                    Evaluating precision…
+                  </p>
                 </div>
               </div>
             ) : valid && (mode !== "calculate" || calculation) ? (
               <>
-                <div className="result-card">
+                {/* Result Card */}
+                <div className="result-card rounded-2xl border border-blue-100/80 bg-white p-4 shadow-sm transition duration-300 hover:shadow-md sm:p-5">
                   <div className="text-sm font-medium text-slate-500">
                     {mode === "count"
                       ? "Significant figures"
@@ -218,30 +255,41 @@ export function Calculator({ compact = false }: CalculatorProps) {
                           ? calculation?.precision
                           : "Scientific notation"}
                   </div>
-                  <div className="mt-2 break-all text-[34px] font-semibold tracking-[-.04em] text-[#123f73] sm:text-[42px]">
+
+                  <div className="mt-2 break-all text-[34px] font-bold tracking-[-.04em] text-[#123f73] transition-all duration-300 sm:text-[42px]">
                     {result}
                   </div>
+
                   {mode === "count" && <DigitHighlighter value={value} />}
                 </div>
 
-                <StepList
-                  mode={mode}
-                  figures={figures}
-                  value={value}
-                  secondValue={secondValue}
-                  operation={operation}
-                  calculation={calculation}
-                />
+                {/* Step-by-Step Solution */}
+                <div className="mt-4 animate-[fadeInUp_.35s_ease-out_both]">
+                  <StepList
+                    mode={mode}
+                    figures={figures}
+                    value={value}
+                    secondValue={secondValue}
+                    operation={operation}
+                    calculation={calculation}
+                  />
+                </div>
               </>
             ) : (
+              /* Empty State */
               <div className="grid min-h-64 place-items-center text-center">
-                <div>
-                  <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-amber-600">
+                <div className="max-w-xs animate-[fadeInUp_.3s_ease-out_both]">
+                  <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl border border-amber-100 bg-amber-50 text-amber-600">
                     <Icon name="calculator" size={24} />
                   </div>
-                  <h3 className="text-sm font-semibold text-slate-800">Check your input</h3>
-                  <p className="mt-1 max-w-xs text-xs leading-5 text-slate-500">
-                    Enter valid numeric values (such as integers, decimals, or standard exponential notation).
+
+                  <h3 className="text-sm font-semibold text-slate-800">
+                    Check your input
+                  </h3>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Enter valid numeric values such as integers, decimals, or
+                    standard exponential notation.
                   </p>
                 </div>
               </div>
