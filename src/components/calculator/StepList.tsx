@@ -1,6 +1,6 @@
 import React from "react";
 import type { Mode } from "../../types";
-import type { Operation } from "../../utils/sigfig";
+import { type Operation, analyzeSignificantFigures } from "../../utils/sigfig";
 import { Icon } from "../common/Icons";
 
 interface StepListProps {
@@ -36,6 +36,8 @@ export function StepList({
   operation,
   calculation,
 }: StepListProps) {
+  const sigAnalysis = mode === "sigfig" ? analyzeSignificantFigures(value) : null;
+
   return (
     <div className="mt-5">
       <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#102e50]">
@@ -51,6 +53,14 @@ export function StepList({
             <StepItem text="Ignore leading zeros; they only locate the decimal point." />
             <StepItem text="Count every non-zero digit and zeros captive between non-zero digits." />
             <StepItem text="Count trailing zeros if the number contains an explicit decimal point." />
+          </>
+        )}
+
+        {mode === "sigfig" && sigAnalysis && (
+          <>
+            {sigAnalysis.steps.map((step, idx) => (
+              <StepItem key={idx} text={step} />
+            ))}
           </>
         )}
 

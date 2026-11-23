@@ -16,7 +16,7 @@ export type Page =
   | "terms"
   | "disclaimer";
 
-export type Mode = "count" | "round" | "calculate" | "scientific";
+export type Mode = "count" | "sigfig" | "round" | "calculate" | "scientific";
 
 export interface NavItem {
   label: string;

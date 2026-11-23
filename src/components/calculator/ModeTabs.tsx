@@ -10,6 +10,7 @@ interface ModeTabsProps {
 export function ModeTabs({ currentMode, onSelectMode }: ModeTabsProps) {
   const modes: { key: Mode; label: string; icon: string }[] = [
     { key: "count", label: "Count", icon: "hash" },
+    { key: "sigfig", label: "SigFig", icon: "spark" },
     { key: "round", label: "Round", icon: "round" },
     { key: "calculate", label: "Calculate", icon: "calculator" },
     { key: "scientific", label: "Scientific notation", icon: "atom" },

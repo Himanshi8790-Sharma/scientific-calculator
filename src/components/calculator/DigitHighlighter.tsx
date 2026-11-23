@@ -6,13 +6,28 @@ interface DigitHighlighterProps {
 
 export function DigitHighlighter({ value }: DigitHighlighterProps) {
   const plain = value.toLowerCase().split("e")[0];
-  let started = false;
+  const hasDecimal = plain.includes(".");
+  const firstNonZero = plain.search(/[1-9]/);
+  const lastNonZero = plain.search(/[1-9](?!.*[1-9])/);
+  const dotIndex = plain.indexOf(".");
 
   return (
     <div className="mt-3 flex flex-wrap items-center gap-1 text-lg font-mono font-medium">
       {[...plain].map((char, index) => {
-        if (/[1-9]/.test(char)) started = true;
-        const significant = started && /\d/.test(char);
+        let significant = false;
+        if (/\d/.test(char)) {
+          if (firstNonZero === -1) {
+            // Pure zeros e.g. "0.00" or "0"
+            significant = hasDecimal ? index > dotIndex : true;
+          } else if (index >= firstNonZero) {
+            if (hasDecimal) {
+              significant = true;
+            } else {
+              significant = index <= lastNonZero;
+            }
+          }
+        }
+
         return (
           <span
             key={index}

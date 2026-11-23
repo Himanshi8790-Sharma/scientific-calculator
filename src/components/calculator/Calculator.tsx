@@ -1,11 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { Mode } from "../../types";
 import {
+  analyzeSignificantFigures,
   calculateWithSigFigs,
   countSignificantFigures,
+  decimalPlaces,
   isValidNumber,
   type Operation,
   roundToSignificantFigures,
+  toDecimalNotation,
+  toENotation,
   toScientificNotation,
 } from "../../utils/sigfig";
 import { Icon } from "../common/Icons";
@@ -20,6 +24,7 @@ interface CalculatorProps {
 export function Calculator({ compact = false }: CalculatorProps) {
   const [mode, setMode] = useState<Mode>("count");
   const [value, setValue] = useState("0.004560");
+  const [countSubmittedValue, setCountSubmittedValue] = useState<string | null>(null);
   const [figures, setFigures] = useState(3);
   const [secondValue, setSecondValue] = useState("2.1");
   const [operation, setOperation] = useState<Operation>("×");
@@ -36,23 +41,68 @@ export function Calculator({ compact = false }: CalculatorProps) {
       ? calculateWithSigFigs(value, operation, secondValue)
       : null;
 
+  const sigAnalysis = useMemo(() => {
+    if (!valid || mode !== "sigfig") return null;
+    return analyzeSignificantFigures(value);
+  }, [valid, mode, value]);
+
   const result = useMemo(() => {
     if (!valid) return "";
-    if (mode === "count") return String(count);
+    if (mode === "count") {
+      return countSubmittedValue !== null
+        ? String(countSignificantFigures(countSubmittedValue))
+        : "";
+    }
+    if (mode === "sigfig") return String(count);
     if (mode === "round") return roundToSignificantFigures(value, figures);
     if (mode === "scientific") return toScientificNotation(value, figures);
     return calculation?.value || "";
-  }, [valid, mode, count, value, figures, calculation]);
+  }, [valid, mode, count, countSubmittedValue, value, figures, calculation]);
 
+  // Determine whether to show the result pane on the right side
+  const showResult = useMemo(() => {
+    if (!valid) return false;
+    if (mode === "count") {
+      return countSubmittedValue !== null;
+    }
+    if (mode === "calculate") {
+      return secondValid && calculation !== null;
+    }
+    return true;
+  }, [valid, mode, countSubmittedValue, secondValid, calculation]);
+
+  // Trigger brief calculation indicator on inputs (except Count tab which calculates on button click)
   useEffect(() => {
+    if (mode === "count") return;
     setIsCalculating(true);
     const timer = window.setTimeout(() => setIsCalculating(false), 180);
     return () => window.clearTimeout(timer);
   }, [mode, value, secondValue, operation, figures]);
 
+  function handleSelectMode(newMode: Mode) {
+    setMode(newMode);
+    if (newMode === "count") {
+      setCountSubmittedValue(null);
+    }
+  }
+
+  function handleCalculateCount() {
+    if (!valid) {
+      setTouched(true);
+      return;
+    }
+    setIsCalculating(true);
+    setCountSubmittedValue(value);
+    const timer = window.setTimeout(() => setIsCalculating(false), 180);
+    return () => window.clearTimeout(timer);
+  }
+
   function useExample(example: string) {
     setValue(example);
     setTouched(true);
+    if (mode === "count") {
+      setCountSubmittedValue(null);
+    }
   }
 
   async function copy() {
@@ -66,6 +116,8 @@ export function Calculator({ compact = false }: CalculatorProps) {
     }
   }
 
+  const activeValue = mode === "count" ? countSubmittedValue || value : value;
+
   return (
     <div
       className={`calculator-shell overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-slate-900/[0.06] transition duration-300 hover:shadow-2xl hover:shadow-blue-900/[0.08] ${
@@ -74,7 +126,7 @@ export function Calculator({ compact = false }: CalculatorProps) {
     >
       {/* Mode Tabs */}
       <div className="border-b border-slate-100 bg-white p-2">
-        <ModeTabs currentMode={mode} onSelectMode={setMode} />
+        <ModeTabs currentMode={mode} onSelectMode={handleSelectMode} />
       </div>
 
       <div className="grid lg:grid-cols-[1.05fr_.95fr]">
@@ -83,17 +135,34 @@ export function Calculator({ compact = false }: CalculatorProps) {
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-[#102e50]">
-                {mode === "calculate" ? "Enter your values" : "Enter a number"}
+                {mode === "calculate"
+                  ? "Enter your values"
+                  : mode === "sigfig"
+                    ? "Significant Figures Calculator"
+                    : mode === "count"
+                      ? "Count Significant Figures"
+                      : "Enter a number"}
               </h3>
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                Decimals and scientific notation are supported
+                {mode === "count"
+                  ? "Enter a number and click Result to view its significant figures breakdown"
+                  : mode === "sigfig"
+                    ? "Evaluate significant figures, digit classifications, and rule steps"
+                    : "Decimals and scientific notation are supported"}
               </p>
             </div>
 
-            <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-              Live result
-            </span>
+            {mode === "count" ? (
+              <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-[#185891]">
+                <Icon name="hash" size={11} />
+                On demand
+              </span>
+            ) : (
+              <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                Live result
+              </span>
+            )}
           </div>
 
           {/* Input Fields */}
@@ -158,8 +227,8 @@ export function Calculator({ compact = false }: CalculatorProps) {
             </p>
           )}
 
-          {/* Significant Figures Selection */}
-          {mode !== "count" && mode !== "calculate" && (
+          {/* Significant Figures Selection (for Round and Scientific tabs) */}
+          {mode !== "count" && mode !== "sigfig" && mode !== "calculate" && (
             <div className="mt-5 animate-[fadeInUp_.3s_ease-out_both]">
               <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Significant figures
@@ -209,6 +278,21 @@ export function Calculator({ compact = false }: CalculatorProps) {
               exactly as measured in your experiment or assignment.
             </div>
           </div>
+
+          {/* Result Button (Count Tab only) */}
+          {mode === "count" && (
+            <div className="mt-5">
+              <button
+                type="button"
+                onClick={handleCalculateCount}
+                disabled={!valid}
+                className="button-primary w-full justify-center py-3 text-sm font-semibold shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Icon name="check" size={16} />
+                <span>Result</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Result Pane */}
@@ -223,7 +307,7 @@ export function Calculator({ compact = false }: CalculatorProps) {
 
               <button
                 onClick={copy}
-                disabled={!result}
+                disabled={!showResult || !result}
                 className="copy-button inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition duration-200 hover:bg-white hover:text-[#174f84] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="Copy result"
               >
@@ -242,25 +326,115 @@ export function Calculator({ compact = false }: CalculatorProps) {
                   </p>
                 </div>
               </div>
-            ) : valid && (mode !== "calculate" || calculation) ? (
+            ) : showResult ? (
               <>
                 {/* Result Card */}
                 <div className="result-card rounded-2xl border border-blue-100/80 bg-white p-4 shadow-sm transition duration-300 hover:shadow-md sm:p-5">
-                  <div className="text-sm font-medium text-slate-500">
-                    {mode === "count"
-                      ? "Significant figures"
-                      : mode === "round"
-                        ? `Rounded to ${figures} sig figs`
-                        : mode === "calculate"
-                          ? calculation?.precision
-                          : "Scientific notation"}
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium text-slate-500">
+                      {mode === "count"
+                        ? "Significant figures"
+                        : mode === "sigfig"
+                          ? "Significant figures count"
+                          : mode === "round"
+                            ? `Rounded to ${figures} sig figs`
+                            : mode === "calculate"
+                              ? calculation?.precision
+                              : "Scientific notation"}
+                    </div>
+                    {mode === "count" && (
+                      <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold text-[#185891]">
+                        Count Analysis
+                      </span>
+                    )}
+                    {mode === "sigfig" && (
+                      <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold text-[#185891]">
+                        SigFig Analysis
+                      </span>
+                    )}
                   </div>
 
                   <div className="mt-2 break-all text-[34px] font-bold tracking-[-.04em] text-[#123f73] transition-all duration-300 sm:text-[42px]">
                     {result}
                   </div>
 
-                  {mode === "count" && <DigitHighlighter value={value} />}
+                  {(mode === "count" || mode === "sigfig") && (
+                    <DigitHighlighter value={activeValue} />
+                  )}
+
+                  {/* Count Tab Complete Result Metrics */}
+                  {mode === "count" && countSubmittedValue && (
+                    <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-xs">
+                      <div className="flex items-center justify-between rounded-xl bg-[#f8fbfe] px-3.5 py-2.5 border border-slate-100/80">
+                        <span className="font-medium text-slate-600">Decimal notation</span>
+                        <span className="font-mono font-bold text-[#102e50]">
+                          {toDecimalNotation(countSubmittedValue)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl bg-[#f8fbfe] px-3.5 py-2.5 border border-slate-100/80">
+                        <span className="font-medium text-slate-600">Number of significant figures</span>
+                        <span className="font-bold text-[#185891]">
+                          {countSignificantFigures(countSubmittedValue)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl bg-[#f8fbfe] px-3.5 py-2.5 border border-slate-100/80">
+                        <span className="font-medium text-slate-600">Number of decimals</span>
+                        <span className="font-mono font-bold text-[#102e50]">
+                          {decimalPlaces(countSubmittedValue)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl bg-[#f8fbfe] px-3.5 py-2.5 border border-slate-100/80">
+                        <span className="font-medium text-slate-600">Scientific notation</span>
+                        <span className="font-mono font-bold text-[#102e50]">
+                          {toScientificNotation(countSubmittedValue)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl bg-[#f8fbfe] px-3.5 py-2.5 border border-slate-100/80">
+                        <span className="font-medium text-slate-600">E notation</span>
+                        <span className="font-mono font-bold text-[#102e50]">
+                          {toENotation(countSubmittedValue)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SigFig Mode Detailed Anatomy Breakdown */}
+                  {mode === "sigfig" && sigAnalysis && (
+                    <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 text-xs sm:grid-cols-4">
+                      <div className="rounded-xl bg-[#f7fafc] p-2 text-center">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">
+                          Non-Zero
+                        </div>
+                        <div className="mt-0.5 font-bold text-[#102e50]">
+                          {sigAnalysis.nonZeroCount}
+                        </div>
+                      </div>
+                      <div className="rounded-xl bg-[#f7fafc] p-2 text-center">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">
+                          Captive Zeros
+                        </div>
+                        <div className="mt-0.5 font-bold text-[#102e50]">
+                          {sigAnalysis.captiveZeros}
+                        </div>
+                      </div>
+                      <div className="rounded-xl bg-[#f7fafc] p-2 text-center">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">
+                          Trailing Zeros
+                        </div>
+                        <div className="mt-0.5 font-bold text-[#102e50]">
+                          {sigAnalysis.trailingZeros}
+                        </div>
+                      </div>
+                      <div className="rounded-xl bg-[#f7fafc] p-2 text-center">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">
+                          Leading Zeros
+                        </div>
+                        <div className="mt-0.5 font-bold text-slate-500">
+                          {sigAnalysis.leadingZeros}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Step-by-Step Solution */}
@@ -268,7 +442,7 @@ export function Calculator({ compact = false }: CalculatorProps) {
                   <StepList
                     mode={mode}
                     figures={figures}
-                    value={value}
+                    value={activeValue}
                     secondValue={secondValue}
                     operation={operation}
                     calculation={calculation}
@@ -276,20 +450,21 @@ export function Calculator({ compact = false }: CalculatorProps) {
                 </div>
               </>
             ) : (
-              /* Empty State */
+              /* Empty / Initial State */
               <div className="grid min-h-64 place-items-center text-center">
                 <div className="max-w-xs animate-[fadeInUp_.3s_ease-out_both]">
-                  <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl border border-amber-100 bg-amber-50 text-amber-600">
+                  <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl border border-blue-100 bg-blue-50 text-[#174f84]">
                     <Icon name="calculator" size={24} />
                   </div>
 
                   <h3 className="text-sm font-semibold text-slate-800">
-                    Check your input
+                    {mode === "count" ? "Ready to count" : "Check your input"}
                   </h3>
 
                   <p className="mt-1 text-xs leading-5 text-slate-500">
-                    Enter valid numeric values such as integers, decimals, or
-                    standard exponential notation.
+                    {mode === "count"
+                      ? 'Enter a number and click the "Result" button to view its significant figures, decimal notation, scientific notation, and E notation.'
+                      : "Enter valid numeric values such as integers, decimals, or standard exponential notation."}
                   </p>
                 </div>
               </div>
