@@ -56,17 +56,17 @@ export default function App() {
       case "about":
         return <AboutPage go={go} />;
       case "faq":
-        return <FaqPage />;
+        return <FaqPage go={go} />;
       case "blog":
         return <BlogPage go={go} />;
       case "blog-detail":
         return <BlogDetailPage go={go} />;
       case "contact":
-        return <ContactPage />;
+        return <ContactPage go={go} />;
       case "privacy":
       case "terms":
       case "disclaimer":
-        return <LegalPage kind={page} />;
+        return <LegalPage kind={page} go={go} />;
       default:
         return <HomePage go={go} />;
     }
