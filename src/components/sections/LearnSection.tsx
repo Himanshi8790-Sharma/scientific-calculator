@@ -12,19 +12,19 @@ interface GuideItem {
 const guides: GuideItem[] = [
   {
     title: "How to count significant figures",
-    description: "The five rules, with examples.",
+    description: "Learn the five rules with simple examples and clear explanations.",
     page: "rules",
     icon: "hash",
   },
   {
     title: "Significant figures in addition and subtraction",
-    description: "Why decimal places decide the answer.",
+    description: "Understand how decimal places determine the final answer.",
     page: "examples",
     icon: "calculator",
   },
   {
     title: "How to round to significant figures",
-    description: "A step-by-step method with practice.",
+    description: "Follow a simple method and practice rounding correctly.",
     page: "how-it-works",
     icon: "round",
   },
@@ -36,51 +36,123 @@ interface LearnSectionProps {
 
 export function LearnSection({ go }: LearnSectionProps) {
   return (
-    <section className="site-container py-12 sm:py-16">
-      {/* Header */}
-      <div className="text-center max-w-2xl mx-auto">
-        <div className="eyebrow mx-auto mb-2.5">
-          <Icon name="book" size={12} />
-          <span>LEARN & MASTER</span>
+    <section className="relative overflow-hidden bg-white py-16 sm:py-20">
+      {/* Background Decor */}
+      <div className="pointer-events-none absolute -right-32 top-10 h-72 w-72 rounded-full bg-[#edf5fc]/70 blur-[100px]" />
+
+      <div className="site-container relative z-10">
+        {/* Header */}
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="eyebrow mx-auto mb-3">
+            <Icon name="book" size={12} />
+            <span>LEARN & MASTER</span>
+          </div>
+
+          <h2 className="text-3xl font-bold tracking-tight text-[#0a2b4b] sm:text-4xl lg:text-5xl">
+            Your learning journey
+            <span className="text-[#174f84]"> starts here.</span>
+          </h2>
+
+          <p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-slate-500 sm:text-base">
+            Understand the basics, learn calculation rules and build
+            confidence one step at a time.
+          </p>
         </div>
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#0a2b4b]">
-          Learn more
-        </h2>
-        <p className="mt-2 text-sm sm:text-base text-slate-500">
-          Short guides, written plainly.
-        </p>
+
+        {/* Learning Path */}
+        <div className="relative mx-auto mt-16 max-w-5xl">
+          {/* Connecting Line - Desktop */}
+          <div className="absolute left-[16.66%] right-[16.66%] top-[35px] hidden h-px bg-slate-200 md:block">
+            <div className="h-full w-full origin-left animate-[pathFlow_4s_ease-in-out_infinite] bg-gradient-to-r from-[#174f84] via-[#2f75bd] to-[#d9ebff]" />
+          </div>
+
+          {/* Guide Steps */}
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-8">
+            {guides.map((g, index) => (
+              <button
+                key={g.title}
+                onClick={() => go(g.page)}
+                className="group relative text-left"
+              >
+                {/* Mobile Connecting Line */}
+                {index !== guides.length - 1 && (
+                  <div className="absolute left-[27px] top-[60px] h-[calc(100%+20px)] w-px bg-slate-200 md:hidden" />
+                )}
+
+                {/* Step Header */}
+                <div className="relative flex items-center gap-4 md:flex-col md:items-start">
+                  {/* Number / Icon Circle */}
+                  <div className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-white text-[#174f84] shadow-sm transition-all duration-500 group-hover:border-[#174f84] group-hover:bg-[#174f84] group-hover:text-white group-hover:shadow-lg group-hover:shadow-blue-900/10">
+                    <Icon name={g.icon} size={21} />
+
+                    {/* Step Number */}
+                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#0a2b4b] text-[9px] font-bold text-white ring-2 ring-white">
+                      {index + 1}
+                    </span>
+                  </div>
+
+                  {/* Mobile Title */}
+                  <h3 className="text-lg font-bold leading-snug text-[#0a2b4b] transition-colors group-hover:text-[#174f84] md:mt-6 md:text-xl">
+                    {g.title}
+                  </h3>
+                </div>
+
+                {/* Description */}
+                <div className="ml-[72px] mt-2 md:ml-0 md:mt-4">
+                  <p className="text-sm leading-7 text-slate-500">
+                    {g.description}
+                  </p>
+
+                  {/* Link */}
+                  <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#174f84]">
+                    <span className="relative">
+                      Explore guide
+                      <span className="absolute -bottom-1 left-0 h-px w-0 bg-[#174f84] transition-all duration-300 group-hover:w-full" />
+                    </span>
+
+                    <span className="transition-transform duration-300 group-hover:translate-x-1">
+                      <Icon name="arrow" size={14} />
+                    </span>
+                  </div>
+                </div>
+
+                {/* Decorative Step Text */}
+                <span className="pointer-events-none absolute right-2 top-0 hidden text-6xl font-black text-slate-100 transition-colors duration-300 group-hover:text-blue-50 md:block">
+                  0{index + 1}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="mt-14 flex justify-center border-t border-slate-100 pt-8">
+            <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full bg-[#edf5fc] px-5 py-3 text-center text-xs font-medium text-[#174f84] sm:text-sm">
+              <Icon name="spark" size={14} />
+              <span>Learn at your own pace</span>
+              <span className="mx-1 text-blue-300">•</span>
+              <span>Practice as you go</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* 3 Guide Cards Responsive */}
-      <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-        {guides.map((g) => (
-          <button
-            key={g.title}
-            onClick={() => go(g.page)}
-            className="group flex flex-col justify-between rounded-2xl bg-white p-6 sm:p-7 text-left shadow-xs border border-slate-200/80 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-md cursor-pointer"
-          >
-            <div>
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#edf5fc] text-[#174f84] transition duration-300 group-hover:scale-105 group-hover:bg-[#174f84] group-hover:text-white">
-                <Icon name={g.icon} size={18} />
-              </div>
-
-              <h3 className="text-base font-bold text-[#0a2b4b] group-hover:text-[#174f84] transition-colors leading-snug">
-                {g.title}
-              </h3>
-              <p className="mt-2.5 text-xs sm:text-sm text-slate-500 leading-relaxed">
-                {g.description}
-              </p>
-            </div>
-
-            <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold text-[#185891] group-hover:underline">
-              <span>Read guide</span>
-              <span className="transition-transform duration-300 group-hover:translate-x-1">
-                <Icon name="arrow" size={14} />
-              </span>
-            </div>
-          </button>
-        ))}
-      </div>
+      {/* Animation */}
+      <style>{`
+        @keyframes pathFlow {
+          0% {
+            transform: scaleX(0);
+            opacity: 0.3;
+          }
+          50% {
+            transform: scaleX(1);
+            opacity: 1;
+          }
+          100% {
+            transform: scaleX(0);
+            opacity: 0.3;
+          }
+        }
+      `}</style>
     </section>
   );
 }

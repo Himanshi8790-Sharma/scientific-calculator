@@ -18,59 +18,71 @@ const referenceData: ReferenceRow[] = [
 ];
 
 export function QuickReferenceSection() {
+  // Duplicate items for seamless looping
+  const loopData = [...referenceData, ...referenceData];
+
   return (
-    <section className="site-container py-12 sm:py-16">
+    <section className="site-container py-10 sm:py-14 overflow-hidden">
       {/* Header */}
-      <div className="text-center max-w-2xl mx-auto">
-        <div className="eyebrow mx-auto mb-2.5">
+      <div className="mb-7">
+        <div className="eyebrow mb-2">
           <span>QUICK REFERENCE</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#0a2b4b]">
+
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0a2b4b]">
           Quick reference
         </h2>
+
         <p className="mt-2 text-sm sm:text-base text-slate-500">
           Common numbers and how many significant figures they have.
         </p>
       </div>
 
-      {/* Table Container */}
-      <div className="mt-10 mx-auto max-w-3xl overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs sm:text-sm">
-            <thead>
-              <tr className="border-b border-slate-200/80 bg-[#f8fbfe] text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                <th scope="col" className="px-3.5 py-3 sm:px-6 sm:py-3.5">
-                  Number
-                </th>
-                <th scope="col" className="px-3 py-3 sm:px-6 sm:py-3.5 text-center">
-                  Sig figs
-                </th>
-                <th scope="col" className="px-3.5 py-3 sm:px-6 sm:py-3.5">
-                  Why
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {referenceData.map((row) => (
-                <tr
-                  key={row.number}
-                  className="transition-colors hover:bg-[#f6faff]"
-                >
-                  <td className="whitespace-nowrap px-3.5 py-3 sm:px-6 sm:py-3.5 font-mono font-bold text-[#102e50]">
-                    {row.number}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3 sm:px-6 sm:py-3.5 text-center font-bold text-[#174f84]">
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[#edf5fc] text-xs">
-                      {row.sigFigs}
-                    </span>
-                  </td>
-                  <td className="px-3.5 py-3 sm:px-6 sm:py-3.5 text-slate-600">
-                    {row.why}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Auto Scrolling Cards */}
+      <div className="reference-marquee overflow-hidden">
+        <div className="reference-track flex w-max gap-4">
+          {loopData.map((row, index) => (
+            <div
+              key={`${row.number}-${index}`}
+              className="reference-card group flex w-[260px] sm:w-[280px] shrink-0 flex-col rounded-2xl border border-slate-200 bg-white p-5 transition-colors duration-300 hover:border-blue-200 hover:bg-[#f8fbff]"
+            >
+              {/* Top */}
+              <div className="mb-5 flex items-center justify-between">
+                <span className="text-[11px] font-semibold tracking-widest text-slate-400">
+                  EXAMPLE {String((index % referenceData.length) + 1).padStart(2, "0")}
+                </span>
+
+                <span className="rounded-md bg-[#f1f6fb] px-2.5 py-1 text-xs font-semibold text-[#174f84]">
+                  {row.sigFigs} SF
+                </span>
+              </div>
+
+              {/* Number */}
+              <div className="mb-4 flex min-h-[65px] items-center">
+                <span className="font-mono text-3xl font-bold tracking-tight text-[#102e50] transition-colors group-hover:text-[#1b5c96]">
+                  {row.number}
+                </span>
+              </div>
+
+              <div className="mb-4 h-px bg-slate-100" />
+
+              {/* Explanation */}
+              <p className="min-h-[42px] text-sm leading-6 text-slate-600">
+                {row.why}
+              </p>
+
+              {/* Bottom */}
+              <div className="mt-5 flex items-center justify-between">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                  Significant figures
+                </span>
+
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0a2b4b] text-sm font-bold text-white">
+                  {row.sigFigs}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

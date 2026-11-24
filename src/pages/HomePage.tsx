@@ -106,8 +106,7 @@ export function HomePage({ go }: HomePageProps) {
       {/* 02 · Trust bar */}
       <TrustBarSection />
 
-      {/* 03 · Features */}
-      <FeaturesSection />
+      
 
       {/* 04 · Quick reference table */}
       <QuickReferenceSection />
@@ -120,9 +119,12 @@ export function HomePage({ go }: HomePageProps) {
 
       {/* 07 · Who it’s for */}
       <AudienceSection />
+      
 
       {/* 08 · Learn */}
       <LearnSection go={go} />
+      {/* 03 · Features */}
+      <FeaturesSection />
 
       {/* 09 · FAQ */}
       <FaqSection />

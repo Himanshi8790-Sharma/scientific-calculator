@@ -22,10 +22,17 @@ interface CalculatorProps {
   initialMode?: Mode;
 }
 
+interface SubmittedCalculation {
+  value: string;
+  figures: number;
+  secondValue: string;
+  operation: Operation;
+}
+
 export function Calculator({ compact = false, initialMode = "sigfig" }: CalculatorProps) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [value, setValue] = useState("0.004560");
-  const [countSubmittedValue, setCountSubmittedValue] = useState<string | null>(null);
+  const [submittedData, setSubmittedData] = useState<SubmittedCalculation | null>(null);
   const [figures, setFigures] = useState(3);
   const [secondValue, setSecondValue] = useState("2.1");
   const [operation, setOperation] = useState<Operation>("×");
@@ -35,65 +42,60 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
 
   const valid = isValidNumber(value);
   const secondValid = isValidNumber(secondValue);
-  const count = valid ? countSignificantFigures(value) : 0;
+  const canCalculate = mode === "calculate" ? valid && secondValid : valid;
 
-  const calculation =
-    valid && secondValid
-      ? calculateWithSigFigs(value, operation, secondValue)
-      : null;
+  const activeValue = submittedData ? submittedData.value : value;
+  const activeFigures = submittedData ? submittedData.figures : figures;
+  const activeSecondValue = submittedData ? submittedData.secondValue : secondValue;
+  const activeOperation = submittedData ? submittedData.operation : operation;
+
+  const calculation = useMemo(() => {
+    if (!submittedData || mode !== "calculate") return null;
+    return calculateWithSigFigs(activeValue, activeOperation, activeSecondValue);
+  }, [submittedData, mode, activeValue, activeOperation, activeSecondValue]);
 
   const sigAnalysis = useMemo(() => {
-    if (!valid || mode !== "sigfig") return null;
-    return analyzeSignificantFigures(value);
-  }, [valid, mode, value]);
+    if (!submittedData || mode !== "sigfig") return null;
+    return analyzeSignificantFigures(activeValue);
+  }, [submittedData, mode, activeValue]);
 
   const result = useMemo(() => {
-    if (!valid) return "";
-    if (mode === "count") {
-      return countSubmittedValue !== null
-        ? String(countSignificantFigures(countSubmittedValue))
-        : "";
+    if (!submittedData) return "";
+    if (mode === "count" || mode === "sigfig") {
+      return String(countSignificantFigures(activeValue));
     }
-    if (mode === "sigfig") return String(count);
-    if (mode === "round") return roundToSignificantFigures(value, figures);
-    if (mode === "scientific") return toScientificNotation(value, figures);
-    return calculation?.value || "";
-  }, [valid, mode, count, countSubmittedValue, value, figures, calculation]);
-
-  // Determine whether to show the result pane on the right side
-  const showResult = useMemo(() => {
-    if (!valid) return false;
-    if (mode === "count") {
-      return countSubmittedValue !== null;
+    if (mode === "round") {
+      return roundToSignificantFigures(activeValue, activeFigures);
+    }
+    if (mode === "scientific") {
+      return toScientificNotation(activeValue, activeFigures);
     }
     if (mode === "calculate") {
-      return secondValid && calculation !== null;
+      return calculation?.value || "";
     }
-    return true;
-  }, [valid, mode, countSubmittedValue, secondValid, calculation]);
+    return "";
+  }, [submittedData, mode, activeValue, activeFigures, calculation]);
 
-  // Trigger brief calculation indicator on inputs (except Count tab which calculates on button click)
-  useEffect(() => {
-    if (mode === "count") return;
-    setIsCalculating(true);
-    const timer = window.setTimeout(() => setIsCalculating(false), 180);
-    return () => window.clearTimeout(timer);
-  }, [mode, value, secondValue, operation, figures]);
+  // Determine whether to show the result pane on the right side
+  const showResult = submittedData !== null && result !== "";
 
   function handleSelectMode(newMode: Mode) {
     setMode(newMode);
-    if (newMode === "count") {
-      setCountSubmittedValue(null);
-    }
+    setSubmittedData(null);
   }
 
-  function handleCalculateCount() {
-    if (!valid) {
+  function handleCalculate() {
+    if (!canCalculate) {
       setTouched(true);
       return;
     }
     setIsCalculating(true);
-    setCountSubmittedValue(value);
+    setSubmittedData({
+      value,
+      figures,
+      secondValue,
+      operation,
+    });
     const timer = window.setTimeout(() => setIsCalculating(false), 180);
     return () => window.clearTimeout(timer);
   }
@@ -101,9 +103,7 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
   function useExample(example: string) {
     setValue(example);
     setTouched(true);
-    if (mode === "count") {
-      setCountSubmittedValue(null);
-    }
+    setSubmittedData(null);
   }
 
   async function copy() {
@@ -116,8 +116,6 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
       // Fallback
     }
   }
-
-  const activeValue = mode === "count" ? countSubmittedValue || value : value;
 
   return (
     <div
@@ -142,28 +140,27 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                       ? "Significant Figures Calculator"
                       : mode === "count"
                         ? "Count Significant Figures"
-                        : "Enter a number"}
+                        : mode === "round"
+                          ? "Round to Significant Figures"
+                          : "Convert to Scientific Notation"}
                 </h3>
                 <p className={`mt-0.5 ${compact ? "text-[11px] leading-4" : "text-xs leading-5"} text-slate-500`}>
-                  {mode === "count"
-                    ? "Enter a number and click Result to view its significant figures breakdown"
+                  {mode === "calculate"
+                    ? "Enter values, choose an operation, and click Result"
                     : mode === "sigfig"
-                      ? "Evaluate significant figures, digit classifications, and rule steps"
-                      : "Decimals and scientific notation are supported"}
+                      ? "Enter a number and click Result to view significant figures and rules"
+                      : mode === "count"
+                        ? "Enter a number and click Result to view its significant figures breakdown"
+                        : mode === "round"
+                          ? "Enter a number, choose precision, and click Result"
+                          : "Enter a number, choose precision, and click Result"}
                 </p>
               </div>
 
-              {mode === "count" ? (
-                <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-[#185891]">
-                  <Icon name="hash" size={10} />
-                  On demand
-                </span>
-              ) : (
-                <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-                  Live result
-                </span>
-              )}
+              <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-[#185891]">
+                <Icon name="check" size={10} />
+                On demand
+              </span>
             </div>
 
           {/* Input Fields */}
@@ -175,6 +172,9 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                 onChange={(e) => {
                   setValue(e.target.value);
                   setTouched(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCalculate();
                 }}
                 className={`number-input min-w-0 rounded-xl transition-all focus:ring-4 focus:ring-blue-100 ${
                   touched && !valid ? "invalid" : ""
@@ -199,6 +199,9 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                 aria-label="Second value"
                 value={secondValue}
                 onChange={(e) => setSecondValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCalculate();
+                }}
                 className={`number-input min-w-0 rounded-xl transition-all focus:ring-4 focus:ring-blue-100 ${
                   !secondValid ? "invalid" : ""
                 }`}
@@ -212,6 +215,9 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
               onChange={(e) => {
                 setValue(e.target.value);
                 setTouched(true);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleCalculate();
               }}
               className={`number-input rounded-xl transition-all focus:ring-4 focus:ring-blue-100 ${
                 touched && !valid ? "invalid" : ""
@@ -282,20 +288,18 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
             </div>
           </div>
 
-          {/* Result Button (Count Tab only) */}
-          {mode === "count" && (
-            <div className="mt-5">
-              <button
-                type="button"
-                onClick={handleCalculateCount}
-                disabled={!valid}
-                className="button-primary w-full justify-center py-3 text-sm font-semibold shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Icon name="check" size={16} />
-                <span>Result</span>
-              </button>
-            </div>
-          )}
+          {/* Result Button (All Tabs) */}
+          <div className="mt-5">
+            <button
+              type="button"
+              onClick={handleCalculate}
+              disabled={!canCalculate}
+              className="button-primary w-full justify-center py-3 text-sm font-semibold shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Icon name="check" size={16} />
+              <span>Result</span>
+            </button>
+          </div>
         </div>
 
         {/* Right Result Pane */}
@@ -344,7 +348,7 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                         : mode === "sigfig"
                           ? "Significant figures count"
                           : mode === "round"
-                            ? `Rounded to ${figures} sig figs`
+                            ? `Rounded to ${activeFigures} sig figs`
                             : mode === "calculate"
                               ? calculation?.precision
                               : "Scientific notation"}
@@ -372,36 +376,36 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                   )}
 
                   {/* Count Tab Complete Result Metrics */}
-                  {mode === "count" && countSubmittedValue && (
+                  {mode === "count" && submittedData && (
                     <div className={`${compact ? "mt-3 space-y-1.5 pt-2.5 text-[11px]" : "mt-5 space-y-2 pt-4 text-xs"} border-t border-slate-100`}>
                       <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
                         <span className="font-medium text-slate-600">Decimal notation</span>
                         <span className="font-mono font-bold text-[#102e50] max-w-[50%] truncate text-right">
-                          {toDecimalNotation(countSubmittedValue)}
+                          {toDecimalNotation(activeValue)}
                         </span>
                       </div>
                       <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
                         <span className="font-medium text-slate-600">Number of significant figures</span>
                         <span className="font-bold text-[#185891]">
-                          {countSignificantFigures(countSubmittedValue)}
+                          {countSignificantFigures(activeValue)}
                         </span>
                       </div>
                       <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
                         <span className="font-medium text-slate-600">Number of decimals</span>
                         <span className="font-mono font-bold text-[#102e50]">
-                          {decimalPlaces(countSubmittedValue)}
+                          {decimalPlaces(activeValue)}
                         </span>
                       </div>
                       <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
                         <span className="font-medium text-slate-600">Scientific notation</span>
                         <span className="font-mono font-bold text-[#102e50] max-w-[50%] truncate text-right">
-                          {toScientificNotation(countSubmittedValue)}
+                          {toScientificNotation(activeValue)}
                         </span>
                       </div>
                       <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
                         <span className="font-medium text-slate-600">E notation</span>
                         <span className="font-mono font-bold text-[#102e50] max-w-[50%] truncate text-right">
-                          {toENotation(countSubmittedValue)}
+                          {toENotation(activeValue)}
                         </span>
                       </div>
                     </div>
@@ -452,10 +456,10 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                 <div className={`${compact ? "mt-2.5" : "mt-4"} animate-[fadeInUp_.35s_ease-out_both]`}>
                   <StepList
                     mode={mode}
-                    figures={figures}
+                    figures={activeFigures}
                     value={activeValue}
-                    secondValue={secondValue}
-                    operation={operation}
+                    secondValue={activeSecondValue}
+                    operation={activeOperation}
                     calculation={calculation}
                     compact={compact}
                   />
@@ -470,13 +474,13 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                   </div>
 
                   <h3 className="text-sm font-semibold text-slate-800">
-                    {mode === "count" ? "Ready to count" : "Check your input"}
+                    Ready to calculate
                   </h3>
 
                   <p className="mt-1 text-xs leading-5 text-slate-500">
-                    {mode === "count"
-                      ? 'Enter a number and click the "Result" button to view its significant figures, decimal notation, scientific notation, and E notation.'
-                      : "Enter valid numeric values such as integers, decimals, or standard exponential notation."}
+                    {mode === "calculate"
+                      ? 'Enter both numbers, choose an operation, and click the "Result" button to view the step-by-step solution.'
+                      : 'Enter your values and click the "Result" button to view the complete calculation and breakdown.'}
                   </p>
                 </div>
               </div>

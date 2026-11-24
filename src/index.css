@@ -731,3 +731,41 @@
     filter: none;
   }
 }
+
+/* Continuous horizontal movement */
+.reference-marquee {
+  width: 100%;
+}
+
+.reference-track {
+  animation: reference-scroll 35s linear infinite;
+  will-change: transform;
+}
+
+/* Stop when hovered */
+.reference-marquee:hover .reference-track {
+  animation-play-state: paused;
+}
+
+/* Cards remain interactive */
+.reference-card {
+  cursor: default;
+}
+
+/* Seamless looping */
+@keyframes reference-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Respect accessibility settings */
+@media (prefers-reduced-motion: reduce) {
+  .reference-track {
+    animation: none;
+  }
+}
