@@ -19,10 +19,11 @@ import { StepList } from "./StepList";
 
 interface CalculatorProps {
   compact?: boolean;
+  initialMode?: Mode;
 }
 
-export function Calculator({ compact = false }: CalculatorProps) {
-  const [mode, setMode] = useState<Mode>("count");
+export function Calculator({ compact = false, initialMode = "sigfig" }: CalculatorProps) {
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [value, setValue] = useState("0.004560");
   const [countSubmittedValue, setCountSubmittedValue] = useState<string | null>(null);
   const [figures, setFigures] = useState(3);
@@ -125,45 +126,45 @@ export function Calculator({ compact = false }: CalculatorProps) {
       }`}
     >
       {/* Mode Tabs */}
-      <div className="border-b border-slate-100 bg-white p-2">
-        <ModeTabs currentMode={mode} onSelectMode={handleSelectMode} />
+      <div className={`border-b border-slate-100 bg-white ${compact ? "p-1.5" : "p-2"}`}>
+        <ModeTabs currentMode={mode} onSelectMode={handleSelectMode} compact={compact} />
       </div>
 
       <div className="grid lg:grid-cols-[1.05fr_.95fr]">
         {/* Left Input Pane */}
-        <div className="p-5 sm:p-7 lg:border-r lg:border-slate-100">
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-bold text-[#102e50]">
-                {mode === "calculate"
-                  ? "Enter your values"
-                  : mode === "sigfig"
-                    ? "Significant Figures Calculator"
-                    : mode === "count"
-                      ? "Count Significant Figures"
-                      : "Enter a number"}
-              </h3>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
-                {mode === "count"
-                  ? "Enter a number and click Result to view its significant figures breakdown"
-                  : mode === "sigfig"
-                    ? "Evaluate significant figures, digit classifications, and rule steps"
-                    : "Decimals and scientific notation are supported"}
-              </p>
-            </div>
+        <div className={`${compact ? "p-4 sm:p-5" : "p-5 sm:p-7"} lg:border-r lg:border-slate-100`}>
+          <div className={`${compact ? "mb-3" : "mb-5"} flex items-center justify-between gap-3`}>
+              <div>
+                <h3 className={`${compact ? "text-xs sm:text-sm font-bold" : "text-sm font-bold"} text-[#102e50]`}>
+                  {mode === "calculate"
+                    ? "Enter your values"
+                    : mode === "sigfig"
+                      ? "Significant Figures Calculator"
+                      : mode === "count"
+                        ? "Count Significant Figures"
+                        : "Enter a number"}
+                </h3>
+                <p className={`mt-0.5 ${compact ? "text-[11px] leading-4" : "text-xs leading-5"} text-slate-500`}>
+                  {mode === "count"
+                    ? "Enter a number and click Result to view its significant figures breakdown"
+                    : mode === "sigfig"
+                      ? "Evaluate significant figures, digit classifications, and rule steps"
+                      : "Decimals and scientific notation are supported"}
+                </p>
+              </div>
 
-            {mode === "count" ? (
-              <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-[#185891]">
-                <Icon name="hash" size={11} />
-                On demand
-              </span>
-            ) : (
-              <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-                Live result
-              </span>
-            )}
-          </div>
+              {mode === "count" ? (
+                <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-[#185891]">
+                  <Icon name="hash" size={10} />
+                  On demand
+                </span>
+              ) : (
+                <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                  Live result
+                </span>
+              )}
+            </div>
 
           {/* Input Fields */}
           {mode === "calculate" ? (
@@ -252,14 +253,16 @@ export function Calculator({ compact = false }: CalculatorProps) {
           )}
 
           {/* Presets */}
-          <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <div className={`${compact ? "mt-3 gap-1.5 text-[11px]" : "mt-6 gap-2 text-xs"} flex flex-wrap items-center text-slate-500`}>
             <span className="font-medium text-slate-400">Try presets:</span>
 
             {["1200", "0.00340", "6.022e23"].map((ex) => (
               <button
                 key={ex}
                 onClick={() => useExample(ex)}
-                className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-mono text-xs font-medium text-slate-700 transition duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 active:scale-95"
+                className={`rounded-lg border border-slate-200 bg-slate-50 font-mono font-medium text-slate-700 transition duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 active:scale-95 ${
+                  compact ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1.5 text-xs"
+                }`}
               >
                 {ex}
               </button>
@@ -267,9 +270,9 @@ export function Calculator({ compact = false }: CalculatorProps) {
           </div>
 
           {/* Precision Note */}
-          <div className="mt-6 flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50/70 p-3.5 text-xs leading-5 text-[#315b83]">
+          <div className={`${compact ? "mt-3 p-2.5 text-[11px] leading-4" : "mt-6 p-3.5 text-xs leading-5"} flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50/70 text-[#315b83]`}>
             <span className="mt-0.5 shrink-0 text-blue-600">
-              <Icon name="info" size={15} />
+              <Icon name="info" size={compact ? 13 : 15} />
             </span>
 
             <div>
@@ -296,22 +299,24 @@ export function Calculator({ compact = false }: CalculatorProps) {
         </div>
 
         {/* Right Result Pane */}
-        <div className="flex flex-col justify-between bg-gradient-to-br from-[#f8fbff] to-[#f1f7fd] p-5 sm:p-7">
+        <div className={`flex flex-col justify-between bg-gradient-to-br from-[#f8fbff] to-[#f1f7fd] ${compact ? "p-4 sm:p-5" : "p-5 sm:p-7"}`}>
           <div>
             {/* Result Header */}
-            <div className="mb-4 flex items-center justify-between">
+            <div className={`${compact ? "mb-2.5" : "mb-4"} flex items-center justify-between`}>
               <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[.14em] text-slate-500">
-                <Icon name="scale" size={14} className="text-[#2f75bd]" />
+                <Icon name="scale" size={compact ? 13 : 14} className="text-[#2f75bd]" />
                 Result
               </span>
 
               <button
                 onClick={copy}
                 disabled={!showResult || !result}
-                className="copy-button inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition duration-200 hover:bg-white hover:text-[#174f84] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+                className={`copy-button inline-flex items-center gap-1.5 rounded-lg transition duration-200 hover:bg-white hover:text-[#174f84] hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40 ${
+                  compact ? "px-2.5 py-1 text-xs" : "px-3 py-1.5"
+                }`}
                 aria-label="Copy result"
               >
-                <Icon name={copied ? "check" : "copy"} size={16} />
+                <Icon name={copied ? "check" : "copy"} size={compact ? 14 : 16} />
                 <span>{copied ? "Copied!" : "Copy"}</span>
               </button>
             </div>
@@ -329,9 +334,11 @@ export function Calculator({ compact = false }: CalculatorProps) {
             ) : showResult ? (
               <>
                 {/* Result Card */}
-                <div className="result-card rounded-2xl border border-blue-100/80 bg-white p-4 shadow-sm transition duration-300 hover:shadow-md sm:p-5">
+                <div className={`result-card rounded-2xl border border-blue-100/80 bg-white shadow-sm transition duration-300 hover:shadow-md ${
+                  compact ? "p-3 sm:p-4" : "p-4 sm:p-5"
+                }`}>
                   <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium text-slate-500">
+                    <div className={`${compact ? "text-xs" : "text-sm"} font-medium text-slate-500`}>
                       {mode === "count"
                         ? "Significant figures"
                         : mode === "sigfig"
@@ -343,18 +350,20 @@ export function Calculator({ compact = false }: CalculatorProps) {
                               : "Scientific notation"}
                     </div>
                     {mode === "count" && (
-                      <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold text-[#185891]">
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
                         Count Analysis
                       </span>
                     )}
                     {mode === "sigfig" && (
-                      <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold text-[#185891]">
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
                         SigFig Analysis
                       </span>
                     )}
                   </div>
 
-                  <div className="mt-2 break-all text-[34px] font-bold tracking-[-.04em] text-[#123f73] transition-all duration-300 sm:text-[42px]">
+                  <div className={`break-all font-bold tracking-[-.04em] text-[#123f73] transition-all duration-300 ${
+                    compact ? "mt-1 text-[28px] sm:text-[34px]" : "mt-2 text-[34px] sm:text-[42px]"
+                  }`}>
                     {result}
                   </div>
 
@@ -364,34 +373,34 @@ export function Calculator({ compact = false }: CalculatorProps) {
 
                   {/* Count Tab Complete Result Metrics */}
                   {mode === "count" && countSubmittedValue && (
-                    <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-xs">
-                      <div className="flex items-center justify-between rounded-xl bg-[#f8fbfe] px-3.5 py-2.5 border border-slate-100/80">
+                    <div className={`${compact ? "mt-3 space-y-1.5 pt-2.5 text-[11px]" : "mt-5 space-y-2 pt-4 text-xs"} border-t border-slate-100`}>
+                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
                         <span className="font-medium text-slate-600">Decimal notation</span>
-                        <span className="font-mono font-bold text-[#102e50]">
+                        <span className="font-mono font-bold text-[#102e50] max-w-[50%] truncate text-right">
                           {toDecimalNotation(countSubmittedValue)}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between rounded-xl bg-[#f8fbfe] px-3.5 py-2.5 border border-slate-100/80">
+                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
                         <span className="font-medium text-slate-600">Number of significant figures</span>
                         <span className="font-bold text-[#185891]">
                           {countSignificantFigures(countSubmittedValue)}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between rounded-xl bg-[#f8fbfe] px-3.5 py-2.5 border border-slate-100/80">
+                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
                         <span className="font-medium text-slate-600">Number of decimals</span>
                         <span className="font-mono font-bold text-[#102e50]">
                           {decimalPlaces(countSubmittedValue)}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between rounded-xl bg-[#f8fbfe] px-3.5 py-2.5 border border-slate-100/80">
+                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
                         <span className="font-medium text-slate-600">Scientific notation</span>
-                        <span className="font-mono font-bold text-[#102e50]">
+                        <span className="font-mono font-bold text-[#102e50] max-w-[50%] truncate text-right">
                           {toScientificNotation(countSubmittedValue)}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between rounded-xl bg-[#f8fbfe] px-3.5 py-2.5 border border-slate-100/80">
+                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
                         <span className="font-medium text-slate-600">E notation</span>
-                        <span className="font-mono font-bold text-[#102e50]">
+                        <span className="font-mono font-bold text-[#102e50] max-w-[50%] truncate text-right">
                           {toENotation(countSubmittedValue)}
                         </span>
                       </div>
@@ -400,34 +409,36 @@ export function Calculator({ compact = false }: CalculatorProps) {
 
                   {/* SigFig Mode Detailed Anatomy Breakdown */}
                   {mode === "sigfig" && sigAnalysis && (
-                    <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 text-xs sm:grid-cols-4">
-                      <div className="rounded-xl bg-[#f7fafc] p-2 text-center">
-                        <div className="text-[10px] uppercase font-bold text-slate-400">
+                    <div className={`grid grid-cols-2 border-t border-slate-100 sm:grid-cols-4 ${
+                      compact ? "mt-2.5 gap-1.5 pt-2 text-[11px]" : "mt-4 gap-2 pt-3 text-xs"
+                    }`}>
+                      <div className={`rounded-xl bg-[#f7fafc] text-center ${compact ? "p-1.5" : "p-2"}`}>
+                        <div className="text-[9px] uppercase font-bold text-slate-400">
                           Non-Zero
                         </div>
                         <div className="mt-0.5 font-bold text-[#102e50]">
                           {sigAnalysis.nonZeroCount}
                         </div>
                       </div>
-                      <div className="rounded-xl bg-[#f7fafc] p-2 text-center">
-                        <div className="text-[10px] uppercase font-bold text-slate-400">
-                          Captive Zeros
+                      <div className={`rounded-xl bg-[#f7fafc] text-center ${compact ? "p-1.5" : "p-2"}`}>
+                        <div className="text-[9px] uppercase font-bold text-slate-400">
+                          Captive
                         </div>
                         <div className="mt-0.5 font-bold text-[#102e50]">
                           {sigAnalysis.captiveZeros}
                         </div>
                       </div>
-                      <div className="rounded-xl bg-[#f7fafc] p-2 text-center">
-                        <div className="text-[10px] uppercase font-bold text-slate-400">
-                          Trailing Zeros
+                      <div className={`rounded-xl bg-[#f7fafc] text-center ${compact ? "p-1.5" : "p-2"}`}>
+                        <div className="text-[9px] uppercase font-bold text-slate-400">
+                          Trailing
                         </div>
                         <div className="mt-0.5 font-bold text-[#102e50]">
                           {sigAnalysis.trailingZeros}
                         </div>
                       </div>
-                      <div className="rounded-xl bg-[#f7fafc] p-2 text-center">
-                        <div className="text-[10px] uppercase font-bold text-slate-400">
-                          Leading Zeros
+                      <div className={`rounded-xl bg-[#f7fafc] text-center ${compact ? "p-1.5" : "p-2"}`}>
+                        <div className="text-[9px] uppercase font-bold text-slate-400">
+                          Leading
                         </div>
                         <div className="mt-0.5 font-bold text-slate-500">
                           {sigAnalysis.leadingZeros}
@@ -438,7 +449,7 @@ export function Calculator({ compact = false }: CalculatorProps) {
                 </div>
 
                 {/* Step-by-Step Solution */}
-                <div className="mt-4 animate-[fadeInUp_.35s_ease-out_both]">
+                <div className={`${compact ? "mt-2.5" : "mt-4"} animate-[fadeInUp_.35s_ease-out_both]`}>
                   <StepList
                     mode={mode}
                     figures={figures}
@@ -446,6 +457,7 @@ export function Calculator({ compact = false }: CalculatorProps) {
                     secondValue={secondValue}
                     operation={operation}
                     calculation={calculation}
+                    compact={compact}
                   />
                 </div>
               </>

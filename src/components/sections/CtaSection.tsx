@@ -14,8 +14,8 @@ export function CtaSection({
   subtitle = "Stop guessing. Calculate with confidence and understand the science behind every result.",
 }: CtaSectionProps) {
   return (
-    <section className="site-container my-10">
-      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0b2d4d] via-[#123d63] to-[#164b73] px-6 py-14 text-center text-white sm:px-12 sm:py-16">
+    <section className="site-container my-8 sm:my-12">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-[28px] bg-gradient-to-br from-[#0b2d4d] via-[#123d63] to-[#164b73] px-5 py-10 sm:px-12 sm:py-16 text-center text-white">
 
         {/* Decorative circles */}
         <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border border-white/[0.08]" />
@@ -32,25 +32,25 @@ export function CtaSection({
 
         <div className="relative z-10 mx-auto max-w-2xl">
           {/* Label */}
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-1.5 text-xs font-medium tracking-wide text-blue-100">
+          <div className="mb-4 sm:mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-1.5 text-xs font-medium tracking-wide text-blue-100">
             <Icon name="atom" size={14} />
             <span>Precision starts here</span>
           </div>
 
           {/* Heading */}
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-semibold tracking-tight">
             {title}
           </h2>
 
           {/* Description */}
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-blue-100/75 sm:text-base">
+          <p className="mx-auto mt-3 sm:mt-4 max-w-xl text-xs sm:text-base leading-relaxed sm:leading-7 text-blue-100/75">
             {subtitle}
           </p>
 
           {/* CTA */}
           <button
             onClick={() => go("calculator")}
-            className="group mt-8 inline-flex items-center justify-center gap-3 rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-[#103454] shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-1 hover:bg-blue-50 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-[#123d63]"
+            className="group mt-6 sm:mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-3 rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-[#103454] shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-1 hover:bg-blue-50 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-[#123d63]"
           >
             <Icon name="calculator" size={17} />
             <span>Explore the calculator</span>
@@ -60,7 +60,7 @@ export function CtaSection({
           </button>
 
           {/* Features */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs text-blue-100/70">
+          <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-xs text-blue-100/70">
             <span className="flex items-center gap-2">
               <Icon name="check" size={14} />
               Accurate calculations

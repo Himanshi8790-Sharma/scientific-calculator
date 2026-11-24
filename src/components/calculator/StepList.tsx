@@ -15,13 +15,14 @@ interface StepListProps {
     precision: string;
     explanation: string;
   } | null;
+  compact?: boolean;
 }
 
-function StepItem({ text }: { text: string }) {
+function StepItem({ text, compact = false }: { text: string; compact?: boolean }) {
   return (
-    <div className="flex items-start gap-2.5">
+    <div className={`flex items-start ${compact ? "gap-2" : "gap-2.5"}`}>
       <span className="mt-0.5 text-emerald-600 shrink-0">
-        <Icon name="check" size={15} />
+        <Icon name="check" size={compact ? 13 : 15} />
       </span>
       <span>{text}</span>
     </div>
@@ -35,56 +36,57 @@ export function StepList({
   secondValue,
   operation,
   calculation,
+  compact = false,
 }: StepListProps) {
   const sigAnalysis = mode === "sigfig" ? analyzeSignificantFigures(value) : null;
 
   return (
-    <div className="mt-5">
-      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#102e50]">
-        <span className="grid h-6 w-6 place-items-center rounded-full bg-[#d8eaff] text-[11px] font-bold text-[#185a9d]">
-          <Icon name="atom" size={13} />
+    <div className={compact ? "mt-3" : "mt-5"}>
+      <div className={`flex items-center gap-1.5 font-semibold text-[#102e50] ${compact ? "mb-1.5 text-xs" : "mb-3 text-sm"}`}>
+        <span className={`grid place-items-center rounded-full bg-[#d8eaff] font-bold text-[#185a9d] ${compact ? "h-5 w-5 text-[10px]" : "h-6 w-6 text-[11px]"}`}>
+          <Icon name="atom" size={compact ? 11 : 13} />
         </span>
         <span>How we got there</span>
       </div>
 
-      <div className="space-y-2.5 text-xs leading-5 text-slate-600">
+      <div className={`text-slate-600 ${compact ? "space-y-1.5 text-[11px] leading-snug" : "space-y-2.5 text-xs leading-5"}`}>
         {mode === "count" && (
           <>
-            <StepItem text="Ignore leading zeros; they only locate the decimal point." />
-            <StepItem text="Count every non-zero digit and zeros captive between non-zero digits." />
-            <StepItem text="Count trailing zeros if the number contains an explicit decimal point." />
+            <StepItem text="Ignore leading zeros; they only locate the decimal point." compact={compact} />
+            <StepItem text="Count every non-zero digit and zeros captive between non-zero digits." compact={compact} />
+            {!compact && <StepItem text="Count trailing zeros if the number contains an explicit decimal point." compact={compact} />}
           </>
         )}
 
         {mode === "sigfig" && sigAnalysis && (
           <>
-            {sigAnalysis.steps.map((step, idx) => (
-              <StepItem key={idx} text={step} />
+            {sigAnalysis.steps.slice(0, compact ? 2 : undefined).map((step, idx) => (
+              <StepItem key={idx} text={step} compact={compact} />
             ))}
           </>
         )}
 
         {mode === "round" && (
           <>
-            <StepItem text={`Locate the ${figures}th significant digit from the first non-zero digit.`} />
-            <StepItem text="Check the next digit: 5 or higher rounds up; otherwise it stays unchanged." />
-            <StepItem text={`Write the result while preserving exactly ${figures} significant figures.`} />
+            <StepItem text={`Locate the ${figures}th significant digit from the first non-zero digit.`} compact={compact} />
+            <StepItem text="Check the next digit: 5 or higher rounds up; otherwise it stays unchanged." compact={compact} />
+            {!compact && <StepItem text={`Write the result while preserving exactly ${figures} significant figures.`} compact={compact} />}
           </>
         )}
 
         {mode === "scientific" && (
           <>
-            <StepItem text="Position the decimal point immediately after the first non-zero digit." />
-            <StepItem text="Count the number of places shifted to determine the exponent of 10." />
-            <StepItem text={`Preserve ${figures} significant figures in the coefficient mantissa.`} />
+            <StepItem text="Position the decimal point immediately after the first non-zero digit." compact={compact} />
+            <StepItem text="Count the number of places shifted to determine the exponent of 10." compact={compact} />
+            {!compact && <StepItem text={`Preserve ${figures} significant figures in the coefficient mantissa.`} compact={compact} />}
           </>
         )}
 
         {mode === "calculate" && calculation && (
           <>
-            <StepItem text={`Raw calculation: ${value} ${operation} ${secondValue} = ${calculation.raw}`} />
-            <StepItem text={calculation.explanation} />
-            <StepItem text={`Reported result: ${calculation.value} (${calculation.precision})`} />
+            <StepItem text={`Raw calculation: ${value} ${operation} ${secondValue} = ${calculation.raw}`} compact={compact} />
+            <StepItem text={calculation.explanation} compact={compact} />
+            {!compact && <StepItem text={`Reported result: ${calculation.value} (${calculation.precision})`} compact={compact} />}
           </>
         )}
       </div>
