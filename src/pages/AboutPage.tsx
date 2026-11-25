@@ -14,7 +14,7 @@ export function AboutPage({ go }: AboutPageProps) {
       title: "Accuracy",
       desc: "Strictly adheres to standard STEM conventions, IUPAC recommendations, and physics curricula.",
       badge: "Standards Compliant",
-    },
+    },     
     {
       icon: "book",
       title: "Clarity",

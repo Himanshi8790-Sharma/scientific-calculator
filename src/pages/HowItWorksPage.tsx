@@ -132,7 +132,7 @@ export function HowItWorksPage({ go }: HowItWorksPageProps) {
           <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
             <Icon name="spark" size={15} />
             <span>Simple, transparent methodology</span>
-          </div>
+          </div>    
 
           <div className="mt-3 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">

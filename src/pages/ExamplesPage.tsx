@@ -96,7 +96,7 @@ export function ExamplesPage({ go }: ExamplesPageProps) {
         text="Follow each problem step-by-step from raw measurement values to a properly reported scientific answer."
         icon={<Icon name="flask" size={14} />}
       />
-
+      
       <main className="site-container pt-12 ">
         {/* Intro Overview Section */}
         <section className="mb-10">

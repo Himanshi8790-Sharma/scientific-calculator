@@ -25,7 +25,7 @@ export function RulesPage({ go }: RulesPageProps) {
             <Icon name="spark" size={15} />
             <span>Understand the fundamentals</span>
           </div>
-
+    
           <div className="mt-4 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
               <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#102e50]">

@@ -11,7 +11,7 @@ export function CalculatorPage() {
         title="Calculate with confidence"
         text="Count, round, convert, or perform operations—all with transparent, step-by-step reasoning."
         icon={<Icon name="calculator" size={14} />}
-      />
+      />    
 
       <main className="site-container -mt-10 relative z-10">
         <Calculator />

@@ -32,7 +32,7 @@ export function FaqPage({ go }: FaqPageProps) {
               const isOpen = openIndex === i;
               const indexNumber = i + 1;
 
-              return (
+              return (      
                 <div
                   key={item.question}
                   className={`group overflow-hidden rounded-2xl border transition-all duration-300 ${isOpen

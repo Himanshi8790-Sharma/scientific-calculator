@@ -13,7 +13,7 @@ export function BlogDetailPage({ go }: BlogDetailPageProps) {
       const saved = sessionStorage.getItem("selected_blog_title");
       if (saved && posts.some((p) => p.title === saved)) {
         return saved;
-      }
+      }      
     } catch {
       // Fallback if sessionStorage is unavailable
     }

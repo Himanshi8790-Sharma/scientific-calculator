@@ -119,7 +119,7 @@ export function BlogPage({ go }: BlogPageProps) {
                     </span>
                   </div>
                 </div>
-              </div>
+              </div>   
 
               {/* Text Side */}
               <div className="flex flex-col justify-center p-7 sm:p-10">

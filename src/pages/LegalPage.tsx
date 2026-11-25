@@ -15,7 +15,7 @@ export function LegalPage({ kind, go }: LegalPageProps) {
   const [activeSection, setActiveSection] = useState(0);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
-
+    
   // Active section scroll spy
   useEffect(() => {
     const handleScroll = () => {
