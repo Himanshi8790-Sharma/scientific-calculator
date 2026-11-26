@@ -182,8 +182,11 @@ export function roundToSignificantFigures(input: string, figures: number): strin
   }
 
   const { sign, digits, power } = parsed;
+  const normInput = normalizeNumericInput(input).toLowerCase();
+  const inputHadExp = normInput.includes("e");
 
-  if (power >= figures || power <= -4) {
+  // Keep scientific notation if original had exponent or if number is extremely large / small
+  if (inputHadExp || power >= 12 || power <= -7) {
     let mantissa = digits[0];
     if (figures > 1) {
       mantissa += "." + digits.slice(1);
@@ -202,6 +205,26 @@ export function roundToSignificantFigures(input: string, figures: number): strin
   }
 }
 
+export function toSuperscript(num: number | string): string {
+  const map: Record<string, string> = {
+    "-": "⁻",
+    "0": "⁰",
+    "1": "¹",
+    "2": "²",
+    "3": "³",
+    "4": "⁴",
+    "5": "⁵",
+    "6": "⁶",
+    "7": "⁷",
+    "8": "⁸",
+    "9": "⁹",
+  };
+  return String(num)
+    .split("")
+    .map((c) => map[c] || c)
+    .join("");
+}
+
 export function toScientificNotation(input: string, figures?: number): string {
   if (!isValidNumber(input)) return "";
   const count = figures || countSignificantFigures(input);
@@ -212,7 +235,7 @@ export function toScientificNotation(input: string, figures?: number): string {
   if (count > 1) {
     mantissa += "." + digits.slice(1);
   }
-  return sign + mantissa + " × 10^" + power;
+  return `${sign}${mantissa} × 10${toSuperscript(power)}`;
 }
 
 export function toENotation(input: string, figures?: number): string {
@@ -292,6 +315,7 @@ export interface SigFigAnalysis {
   leadingZeros: number;
   captiveZeros: number;
   trailingZeros: number;
+  significantDigits: string[];
   steps: string[];
 }
 
@@ -315,6 +339,7 @@ export function analyzeSignificantFigures(input: string): SigFigAnalysis | null 
   let trailingZeros = 0;
   let captiveZeros = 0;
   let sigCount = 0;
+  const significantDigits: string[] = [];
   const steps: string[] = [];
 
   if (firstNonZero === -1) {
@@ -325,8 +350,10 @@ export function analyzeSignificantFigures(input: string): SigFigAnalysis | null 
         `The ${fracPart.length} zero(s) after the decimal indicate precision to ${fracPart.length} decimal place${fracPart.length === 1 ? "" : "s"}.`
       );
       steps.push(`Reported significant figures: ${sigCount}.`);
+      for (let i = 0; i < sigCount; i++) significantDigits.push("0");
     } else {
       steps.push("The single integer 0 represents 1 significant figure.");
+      significantDigits.push("0");
     }
     return {
       sigCount,
@@ -334,6 +361,7 @@ export function analyzeSignificantFigures(input: string): SigFigAnalysis | null 
       leadingZeros: 0,
       captiveZeros: 0,
       trailingZeros: sigCount,
+      significantDigits,
       steps,
     };
   }
@@ -356,48 +384,79 @@ export function analyzeSignificantFigures(input: string): SigFigAnalysis | null 
     captiveZeros = (between.match(/0/g) || []).length;
   }
 
+  // Extract the exact significant digits in sequential order
+  const firstNzInMantissa = mantissaRaw.search(/[1-9]/);
+  const lastNzInMantissa = mantissaRaw.search(/[1-9](?!.*[1-9])/);
+  for (let i = 0; i < mantissaRaw.length; i++) {
+    const ch = mantissaRaw[i];
+    if (!/\d/.test(ch)) continue;
+    let isSig = false;
+    if (i >= firstNzInMantissa) {
+      if (hasDecimal) {
+        isSig = true;
+      } else {
+        isSig = i <= lastNzInMantissa;
+      }
+    }
+    if (isSig) {
+      significantDigits.push(ch);
+    }
+  }
+
   if (hasExp) {
     steps.push(
       `Scientific notation: In ${norm}, significance is determined solely by the coefficient ${mantissaRaw} (the 10^${exponent} factor sets magnitude only).`
     );
   }
 
+  const firstNzChar = mantissaRaw[firstNzInMantissa];
+  const firstNzPos = firstNzInMantissa + 1;
   steps.push(
-    `Non-zero digits: Every non-zero digit is significant. ${
-      nonZeroCount > 0
-        ? `Found ${nonZeroCount} (${nonZeros.split("").join(", ")}).`
-        : "None."
-    }`
+    `First sig fig: '${firstNzChar}' at position ${firstNzPos}.`
+  );
+
+  steps.push(
+    `Non-zero digits: ${nonZeroCount} digit${
+      nonZeroCount === 1 ? "" : "s"
+    } (${nonZeros.split("").join(", ")}) → All significant.`
   );
 
   if (leadingZeros > 0) {
     steps.push(
-      `Leading zeros: ${leadingZeros} leading zero(s) appear before the first non-zero digit. Leading zeros only locate the decimal point and are NOT significant.`
+      `Leading zeros: ${leadingZeros} zero${
+        leadingZeros === 1 ? "" : "s"
+      } before '${firstNzChar}' are placeholders → Not significant.`
     );
   }
 
   if (captiveZeros > 0) {
     steps.push(
-      `Captive zeros: ${captiveZeros} zero(s) are trapped between non-zero digits and ARE significant.`
+      `Captive zeros: ${captiveZeros} zero${
+        captiveZeros === 1 ? "" : "s"
+      } between non-zero digits → Significant.`
     );
   }
 
   if (trailingZeros > 0) {
     if (hasDecimal) {
       steps.push(
-        `Trailing zeros: ${trailingZeros} trailing zero(s) appear after the decimal point, indicating measured precision, and ARE significant.`
+        `Trailing zeros: ${trailingZeros} zero${
+          trailingZeros === 1 ? "" : "s"
+        } after decimal → Significant (shows precision).`
       );
     } else {
       steps.push(
-        `Trailing zeros: ${trailingZeros} trailing zero(s) in a whole number without an explicit decimal point are place-holders and NOT significant.`
+        `Trailing zeros: ${trailingZeros} trailing zero${
+          trailingZeros === 1 ? "" : "s"
+        } without decimal → Placeholders (not significant).`
       );
     }
   }
 
   steps.push(
-    `Conclusion: The value ${norm} contains exactly ${sigCount} significant figure${
+    `Total: ${sigCount} significant figure${
       sigCount === 1 ? "" : "s"
-    }.`
+    } (${significantDigits.join(", ")}).`
   );
 
   return {
@@ -406,6 +465,171 @@ export function analyzeSignificantFigures(input: string): SigFigAnalysis | null 
     leadingZeros,
     captiveZeros,
     trailingZeros,
+    significantDigits,
+    steps,
+  };
+}
+
+export interface RoundingDigitItem {
+  char: string;
+  type: "kept" | "check" | "dropped" | "symbol";
+  label?: string;
+}
+
+export interface RoundingAnalysis {
+  originalValue: string;
+  originalSigFigs: number;
+  targetFigures: number;
+  roundedValue: string;
+  scientificNotation: string;
+  keptDigits: string;
+  roundingDigit: string | null;
+  checkDigit: string | null;
+  checkValue: number | null;
+  roundedUp: boolean;
+  digitItems: RoundingDigitItem[];
+  steps: string[];
+}
+
+export function analyzeRounding(input: string, figures: number): RoundingAnalysis | null {
+  if (!isValidNumber(input) || figures < 1) return null;
+  const norm = normalizeNumericInput(input);
+  const roundedValue = roundToSignificantFigures(input, figures);
+  const originalSigFigs = countSignificantFigures(input);
+  const scientificNotation = toScientificNotation(roundedValue, figures);
+  const clean = norm.replace(/^[+-]/, "");
+  const [mantissaRaw, expText] = clean.toLowerCase().split("e");
+
+  const firstNonZero = mantissaRaw.search(/[1-9]/);
+  const digitItems: RoundingDigitItem[] = [];
+  const keptChars: string[] = [];
+  let checkDigit: string | null = null;
+  let checkValue: number | null = null;
+  let roundedUp = false;
+  const steps: string[] = [];
+
+  if (firstNonZero === -1) {
+    steps.push(`Input is zero (${norm}).`);
+    steps.push(
+      `Rounding zero to ${figures} significant figure${figures === 1 ? "" : "s"
+      } yields ${roundedValue}.`
+    );
+    return {
+      originalValue: norm,
+      originalSigFigs: 1,
+      targetFigures: figures,
+      roundedValue,
+      scientificNotation: toScientificNotation(roundedValue, figures),
+      keptDigits: "0",
+      roundingDigit: "0",
+      checkDigit: null,
+      checkValue: null,
+      roundedUp: false,
+      digitItems: [{ char: "0", type: "kept", label: "Zero" }],
+      steps,
+    };
+  }
+
+  let sigCount = 0;
+  for (let i = 0; i < mantissaRaw.length; i++) {
+    const ch = mantissaRaw[i];
+    if (ch === ".") {
+      digitItems.push({ char: ".", type: "symbol" });
+      continue;
+    }
+    if (i < firstNonZero) {
+      digitItems.push({ char: ch, type: "dropped", label: "Leading zero (not significant)" });
+      continue;
+    }
+
+    sigCount++;
+    if (sigCount <= figures) {
+      digitItems.push({ char: ch, type: "kept", label: `Sig Fig ${sigCount}` });
+      keptChars.push(ch);
+    } else if (sigCount === figures + 1) {
+      checkDigit = ch;
+      checkValue = parseInt(ch, 10);
+      roundedUp = checkValue >= 5;
+      digitItems.push({
+        char: ch,
+        type: "check",
+        label: `Next/decision digit (${ch} ${roundedUp ? "≥ 5 → Round Up" : "< 5 → Keep Unchanged"})`,
+      });
+    } else {
+      digitItems.push({ char: ch, type: "dropped", label: "Dropped / placeholder digit" });
+    }
+  }
+
+  const roundingDigit = keptChars.length > 0 ? keptChars[keptChars.length - 1] : null;
+
+  steps.push(
+    `Original count: ${norm} has ${originalSigFigs} significant figure${
+      originalSigFigs === 1 ? "" : "s"
+    }.`
+  );
+
+  const keptStr = keptChars.join(", ");
+  steps.push(
+    `Rounding digit: For ${figures} sig figs, kept digits are ${keptStr} (rounding digit: '${roundingDigit}').`
+  );
+
+  if (checkDigit !== null && checkValue !== null) {
+    if (roundedUp) {
+      steps.push(
+        `Decision digit: Next digit is '${checkDigit}' (≥ 5 → Round UP, adding 1 to '${roundingDigit}').`
+      );
+    } else {
+      steps.push(
+        `Decision digit: Next digit is '${checkDigit}' (< 5 → Keep '${roundingDigit}' unchanged, no round up).`
+      );
+    }
+  } else {
+    steps.push(
+      `Decision digit: Number already has ${originalSigFigs} sig fig${
+        originalSigFigs === 1 ? "" : "s"
+      }.`
+    );
+  }
+
+  if (mantissaRaw.includes(".")) {
+    const [intPartRaw = ""] = clean.split(".");
+    const nonZeroInt = intPartRaw.replace(/^0+/, "");
+    if (nonZeroInt.length > figures) {
+      const zerosCount = nonZeroInt.length - figures;
+      steps.push(
+        `Magnitude: Preserved with ${zerosCount} zero${
+          zerosCount === 1 ? "" : "s"
+        } before decimal → ${roundedValue} (decimals dropped).`
+      );
+    }
+  } else {
+    const originalLen = clean.split("e")[0].length;
+    if (originalLen > figures) {
+      const zerosCount = originalLen - figures;
+      steps.push(
+        `Magnitude: Preserved with ${zerosCount} zero${
+          zerosCount === 1 ? "" : "s"
+        } → ${roundedValue}.`
+      );
+    }
+  }
+
+  steps.push(
+    `Final result: ${norm} rounded to ${figures} sig figs = ${roundedValue} (Scientific: ${scientificNotation}).`
+  );
+
+  return {
+    originalValue: norm,
+    originalSigFigs,
+    targetFigures: figures,
+    roundedValue,
+    scientificNotation,
+    keptDigits: keptChars.join(""),
+    roundingDigit,
+    checkDigit,
+    checkValue,
+    roundedUp,
+    digitItems,
     steps,
   };
 }

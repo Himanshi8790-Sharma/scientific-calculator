@@ -1,6 +1,12 @@
 import React from "react";
 import type { Mode } from "../../types";
-import { type Operation, analyzeSignificantFigures } from "../../utils/sigfig";
+import {
+  type Operation,
+  analyzeSignificantFigures,
+  analyzeRounding,
+  countSignificantFigures,
+  decimalPlaces,
+} from "../../utils/sigfig";
 import { Icon } from "../common/Icons";
 
 interface StepListProps {
@@ -19,12 +25,24 @@ interface StepListProps {
 }
 
 function StepItem({ text, compact = false }: { text: string; compact?: boolean }) {
+  const colonIdx = text.indexOf(": ");
+  const hasLabel = colonIdx > 0 && colonIdx < 35;
+
   return (
-    <div className={`flex items-start ${compact ? "gap-2" : "gap-2.5"}`}>
+    <div className={`flex items-start ${compact ? "gap-1.5" : "gap-2"} leading-snug break-words min-w-0`}>
       <span className="mt-0.5 text-emerald-600 shrink-0">
-        <Icon name="check" size={compact ? 13 : 15} />
+        <Icon name="check" size={compact ? 12 : 13} />
       </span>
-      <span>{text}</span>
+      <span className="min-w-0 flex-1">
+        {hasLabel ? (
+          <>
+            <strong className="text-slate-800 font-semibold">{text.slice(0, colonIdx)}: </strong>
+            <span>{text.slice(colonIdx + 2)}</span>
+          </>
+        ) : (
+          text
+        )}
+      </span>
     </div>
   );
 }
@@ -39,17 +57,24 @@ export function StepList({
   compact = false,
 }: StepListProps) {
   const sigAnalysis = mode === "sigfig" ? analyzeSignificantFigures(value) : null;
+  const roundAnalysis = mode === "round" ? analyzeRounding(value, figures) : null;
 
   return (
-    <div className={compact ? "mt-3" : "mt-5"}>
-      <div className={`flex items-center gap-1.5 font-semibold text-[#102e50] ${compact ? "mb-1.5 text-xs" : "mb-3 text-sm"}`}>
-        <span className={`grid place-items-center rounded-full bg-[#d8eaff] font-bold text-[#185a9d] ${compact ? "h-5 w-5 text-[10px]" : "h-6 w-6 text-[11px]"}`}>
-          <Icon name="atom" size={compact ? 11 : 13} />
+    <div className={`${compact ? "mt-2.5 pt-2" : "mt-3.5 pt-3"} border-t border-slate-100/90 w-full min-w-0`}>
+      <div className={`flex items-center gap-1.5 font-semibold text-[#102e50] ${compact ? "mb-1 text-xs" : "mb-2 text-xs sm:text-sm"}`}>
+        <span className={`grid place-items-center rounded-full bg-[#d8eaff] font-bold text-[#185a9d] ${compact ? "h-4 w-4 text-[9px]" : "h-5 w-5 text-[10px]"}`}>
+          <Icon name="atom" size={compact ? 10 : 12} />
         </span>
         <span>How we got there</span>
       </div>
 
-      <div className={`text-slate-600 ${compact ? "space-y-1.5 text-[11px] leading-snug" : "space-y-2.5 text-xs leading-5"}`}>
+      <div
+        className={`text-slate-600 ${
+          compact
+            ? "space-y-1 text-[11px] max-h-[150px]"
+            : "space-y-1.5 text-xs max-h-[220px]"
+        } overflow-y-auto pr-1 scrollbar-thin`}
+      >
         {mode === "count" && (
           <>
             <StepItem text="Ignore leading zeros; they only locate the decimal point." compact={compact} />
@@ -60,13 +85,21 @@ export function StepList({
 
         {mode === "sigfig" && sigAnalysis && (
           <>
-            {sigAnalysis.steps.slice(0, compact ? 2 : undefined).map((step, idx) => (
+            {sigAnalysis.steps.map((step, idx) => (
               <StepItem key={idx} text={step} compact={compact} />
             ))}
           </>
         )}
 
-        {mode === "round" && (
+        {mode === "round" && roundAnalysis && (
+          <>
+            {roundAnalysis.steps.map((step, idx) => (
+              <StepItem key={idx} text={step} compact={compact} />
+            ))}
+          </>
+        )}
+
+        {mode === "round" && !roundAnalysis && (
           <>
             <StepItem text={`Locate the ${figures}th significant digit from the first non-zero digit.`} compact={compact} />
             <StepItem text="Check the next digit: 5 or higher rounds up; otherwise it stays unchanged." compact={compact} />
@@ -84,9 +117,17 @@ export function StepList({
 
         {mode === "calculate" && calculation && (
           <>
-            <StepItem text={`Raw calculation: ${value} ${operation} ${secondValue} = ${calculation.raw}`} compact={compact} />
+            <StepItem
+              text={
+                operation === "×" || operation === "÷"
+                  ? `Identify precision: '${value}' has ${countSignificantFigures(value)} sig figs; '${secondValue}' has ${countSignificantFigures(secondValue)} sig figs.`
+                  : `Identify precision: '${value}' has ${decimalPlaces(value)} decimal place${decimalPlaces(value) === 1 ? "" : "s"}; '${secondValue}' has ${decimalPlaces(secondValue)} decimal place${decimalPlaces(secondValue) === 1 ? "" : "s"}.`
+              }
+              compact={compact}
+            />
             <StepItem text={calculation.explanation} compact={compact} />
-            {!compact && <StepItem text={`Reported result: ${calculation.value} (${calculation.precision})`} compact={compact} />}
+            <StepItem text={`Raw arithmetic: ${value} ${operation} ${secondValue} = ${calculation.raw}`} compact={compact} />
+            <StepItem text={`Final rounded result: ${calculation.value} (${calculation.precision})`} compact={compact} />
           </>
         )}
       </div>

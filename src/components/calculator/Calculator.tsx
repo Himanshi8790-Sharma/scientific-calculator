@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { Mode } from "../../types";
 import {
+  analyzeRounding,
   analyzeSignificantFigures,
   calculateWithSigFigs,
   countSignificantFigures,
@@ -34,6 +35,7 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
   const [value, setValue] = useState("0.004560");
   const [submittedData, setSubmittedData] = useState<SubmittedCalculation | null>(null);
   const [figures, setFigures] = useState(3);
+  const [figuresInput, setFiguresInput] = useState("3");
   const [secondValue, setSecondValue] = useState("2.1");
   const [operation, setOperation] = useState<Operation>("×");
   const [touched, setTouched] = useState(false);
@@ -58,6 +60,11 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
     if (!submittedData || mode !== "sigfig") return null;
     return analyzeSignificantFigures(activeValue);
   }, [submittedData, mode, activeValue]);
+
+  const roundAnalysis = useMemo(() => {
+    if (!submittedData || mode !== "round") return null;
+    return analyzeRounding(activeValue, activeFigures);
+  }, [submittedData, mode, activeValue, activeFigures]);
 
   const result = useMemo(() => {
     if (!submittedData) return "";
@@ -234,26 +241,46 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
             </p>
           )}
 
-          {/* Significant Figures Selection (for Round and Scientific tabs) */}
+          {/* Significant Figures Input (for Round and Scientific tabs) */}
           {mode !== "count" && mode !== "sigfig" && mode !== "calculate" && (
             <div className="mt-5 animate-[fadeInUp_.3s_ease-out_both]">
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Significant figures
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label
+                  htmlFor="sig-figs-input"
+                  className="block text-xs font-semibold uppercase tracking-wider text-slate-500"
+                >
+                  {mode === "round" ? "Significant figures to round to" : "Significant figures"}
+                </label>
+                <span className="text-[11px] text-slate-400 font-medium">Enter any integer ≥ 1</span>
+              </div>
 
-              <div className="flex gap-2">
-                {[2, 3, 4, 5].map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => setFigures(n)}
-                    className={`figure-button transition duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
-                      figures === n ? "active" : ""
-                    }`}
-                    aria-pressed={figures === n}
-                  >
-                    {n}
-                  </button>
-                ))}
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1 max-w-[160px]">
+                  <input
+                    id="sig-figs-input"
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={figuresInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFiguresInput(val);
+                      const parsed = parseInt(val, 10);
+                      if (!isNaN(parsed) && parsed >= 1) {
+                        setFigures(parsed);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleCalculate();
+                    }}
+                    className="number-input w-full rounded-xl font-mono text-base font-bold transition-all focus:ring-4 focus:ring-blue-100"
+                    placeholder="e.g. 3"
+                    aria-label="Desired significant figures"
+                  />
+                </div>
+                <span className="text-xs font-semibold text-[#185891] bg-blue-50 px-2.5 py-2 rounded-xl border border-blue-100/80">
+                  {figures} {figures === 1 ? "sig fig" : "sig figs"}
+                </span>
               </div>
             </div>
           )}
@@ -346,9 +373,9 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                       {mode === "count"
                         ? "Significant figures"
                         : mode === "sigfig"
-                          ? "Significant figures count"
+                          ? "Total Significant Figures"
                           : mode === "round"
-                            ? `Rounded to ${activeFigures} sig figs`
+                            ? `Rounded to ${activeFigures} Significant Figures`
                             : mode === "calculate"
                               ? calculation?.precision
                               : "Scientific notation"}
@@ -363,6 +390,16 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                         SigFig Analysis
                       </span>
                     )}
+                    {mode === "round" && (
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
+                        Round Analysis
+                      </span>
+                    )}
+                    {mode === "calculate" && (
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
+                        Calculation Result
+                      </span>
+                    )}
                   </div>
 
                   <div className={`break-all font-bold tracking-[-.04em] text-[#123f73] transition-all duration-300 ${
@@ -373,6 +410,16 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
 
                   {(mode === "count" || mode === "sigfig") && (
                     <DigitHighlighter value={activeValue} />
+                  )}
+
+                  {/* SigFig Mode Significant Digits Display */}
+                  {mode === "sigfig" && sigAnalysis && sigAnalysis.significantDigits.length > 0 && (
+                    <div className={`flex flex-wrap items-center gap-1.5 ${compact ? "mt-1.5 text-[11px]" : "mt-2 text-xs"} text-slate-500`}>
+                      <span className="font-semibold text-slate-700">Significant digits:</span>
+                      <span className="font-mono font-bold text-[#185891]">
+                        {sigAnalysis.significantDigits.join(", ")}
+                      </span>
+                    </div>
                   )}
 
                   {/* Count Tab Complete Result Metrics */}
@@ -446,6 +493,179 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                         </div>
                         <div className="mt-0.5 font-bold text-slate-500">
                           {sigAnalysis.leadingZeros}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Round Mode Detailed Result & Digits Highlighter */}
+                  {mode === "round" && roundAnalysis && (
+                    <div className={`${compact ? "mt-3 space-y-2 pt-2.5" : "mt-4 space-y-2.5 pt-3"} border-t border-slate-100`}>
+                      {/* 4 Summary Cards */}
+                      <div className={`grid grid-cols-2 sm:grid-cols-4 ${compact ? "gap-1.5 text-[11px]" : "gap-2 text-xs"}`}>
+                        <div className={`rounded-xl bg-[#f8fbfe] border border-slate-100/80 text-center ${compact ? "p-1.5" : "p-2.5"}`}>
+                          <div className="text-[9px] uppercase font-bold text-slate-400">
+                            Original Number
+                          </div>
+                          <div className="mt-0.5 font-mono font-bold text-[#102e50] truncate" title={activeValue}>
+                            {activeValue}
+                          </div>
+                        </div>
+                        <div className={`rounded-xl bg-[#f8fbfe] border border-slate-100/80 text-center ${compact ? "p-1.5" : "p-2.5"}`}>
+                          <div className="text-[9px] uppercase font-bold text-slate-400">
+                            Original Sig Figs
+                          </div>
+                          <div className="mt-0.5 font-bold text-[#185891]">
+                            {roundAnalysis.originalSigFigs}
+                          </div>
+                        </div>
+                        <div className={`rounded-xl bg-[#f8fbfe] border border-slate-100/80 text-center ${compact ? "p-1.5" : "p-2.5"}`}>
+                          <div className="text-[9px] uppercase font-bold text-slate-400">
+                            Target Sig Figs
+                          </div>
+                          <div className="mt-0.5 font-bold text-[#185891]">
+                            {activeFigures}
+                          </div>
+                        </div>
+                        <div className={`rounded-xl bg-[#edf5fc] border border-blue-100 text-center ${compact ? "p-1.5" : "p-2.5"}`}>
+                          <div className="text-[9px] uppercase font-bold text-[#185891]">
+                            Rounded Result
+                          </div>
+                          <div className="mt-0.5 font-mono font-bold text-[#0d559c] truncate" title={result}>
+                            {result}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Scientific Notation Card */}
+                      <div className={`flex items-center justify-between rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-3 py-1.5 text-[11px]" : "px-3.5 py-2 text-xs"}`}>
+                        <span className="font-medium text-slate-600">Scientific Notation</span>
+                        <span className="font-mono font-bold text-[#102e50]">
+                          {roundAnalysis.scientificNotation}
+                        </span>
+                      </div>
+
+                      {/* Digits Used for Rounding Highlighter */}
+                      <div className={`rounded-xl border border-slate-100 bg-[#f8fbfe] ${compact ? "p-2" : "p-3"}`}>
+                        <div className="text-[10px] font-semibold uppercase text-slate-400 mb-1.5">
+                          Digits Used for Rounding
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1 font-mono text-base font-medium">
+                          {roundAnalysis.digitItems.map((item, idx) => {
+                            if (item.type === "kept") {
+                              return (
+                                <span
+                                  key={idx}
+                                  title={item.label}
+                                  className="rounded-md bg-[#d9ebff] px-1.5 py-0.5 font-bold text-[#0d559c] shadow-xs"
+                                >
+                                  {item.char}
+                                </span>
+                              );
+                            }
+                            if (item.type === "check") {
+                              return (
+                                <span
+                                  key={idx}
+                                  title={item.label}
+                                  className="rounded-md bg-amber-100 border border-amber-300 px-1.5 py-0.5 font-bold text-amber-900 shadow-xs"
+                                >
+                                  {item.char}
+                                </span>
+                              );
+                            }
+                            if (item.type === "symbol") {
+                              return (
+                                <span key={idx} className="px-0.5 font-bold text-slate-500">
+                                  {item.char}
+                                </span>
+                              );
+                            }
+                            return (
+                              <span key={idx} title={item.label} className="px-0.5 text-slate-400">
+                                {item.char}
+                              </span>
+                            );
+                          })}
+                        </div>
+                        <div className={`mt-2 flex flex-wrap items-center gap-2.5 ${compact ? "text-[10px]" : "text-[11px]"} text-slate-500`}>
+                          <span className="flex items-center gap-1">
+                            <span className="inline-block h-2.5 w-2.5 rounded-sm bg-[#d9ebff] border border-blue-200" />
+                            <span>Kept digits ({activeFigures} sig figs)</span>
+                          </span>
+                          {roundAnalysis.roundingDigit !== null && (
+                            <span className="flex items-center gap-1">
+                              <span className="font-medium text-slate-600">
+                                Rounding digit: <strong className="text-[#0d559c] font-mono">{roundAnalysis.roundingDigit}</strong>
+                              </span>
+                            </span>
+                          )}
+                          {roundAnalysis.checkDigit !== null && (
+                            <span className="flex items-center gap-1">
+                              <span className="inline-block h-2.5 w-2.5 rounded-sm bg-amber-100 border border-amber-300" />
+                              <span>
+                                Next/decision digit: <strong className="text-amber-900 font-mono">{roundAnalysis.checkDigit}</strong> (
+                                {roundAnalysis.roundedUp ? "≥ 5 → Round Up" : "< 5 → Keep Unchanged"}
+                                )
+                              </span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Calculate Mode Visual Presentation & Breakdown */}
+                  {mode === "calculate" && calculation && (
+                    <div className={`${compact ? "mt-3 space-y-2 pt-2.5" : "mt-4 space-y-2.5 pt-3"} border-t border-slate-100`}>
+                      {/* Equation summary banner */}
+                      <div className={`flex items-center justify-between rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-3 py-1.5 text-[11px]" : "px-3.5 py-2 text-xs"}`}>
+                        <span className="font-medium text-slate-500">Operation</span>
+                        <span className="font-mono font-bold text-[#102e50]">
+                          {activeValue} {activeOperation} {activeSecondValue}
+                        </span>
+                      </div>
+
+                      {/* Operands & Governing precision breakdown */}
+                      <div className={`grid grid-cols-2 sm:grid-cols-3 ${compact ? "gap-1.5 text-[11px]" : "gap-2 text-xs"}`}>
+                        <div className={`rounded-xl bg-[#f8fbfe] border border-slate-100/80 text-center ${compact ? "p-1.5" : "p-2.5"}`}>
+                          <div className="text-[9px] uppercase font-bold text-slate-400">
+                            Value A
+                          </div>
+                          <div className="mt-0.5 font-mono font-bold text-[#102e50] truncate" title={activeValue}>
+                            {activeValue}
+                          </div>
+                          <div className="mt-0.5 text-[10px] text-slate-500">
+                            {activeOperation === "×" || activeOperation === "÷"
+                              ? `${countSignificantFigures(activeValue)} sig figs`
+                              : `${decimalPlaces(activeValue)} decimals`}
+                          </div>
+                        </div>
+
+                        <div className={`rounded-xl bg-[#f8fbfe] border border-slate-100/80 text-center ${compact ? "p-1.5" : "p-2.5"}`}>
+                          <div className="text-[9px] uppercase font-bold text-slate-400">
+                            Value B
+                          </div>
+                          <div className="mt-0.5 font-mono font-bold text-[#102e50] truncate" title={activeSecondValue}>
+                            {activeSecondValue}
+                          </div>
+                          <div className="mt-0.5 text-[10px] text-slate-500">
+                            {activeOperation === "×" || activeOperation === "÷"
+                              ? `${countSignificantFigures(activeSecondValue)} sig figs`
+                              : `${decimalPlaces(activeSecondValue)} decimals`}
+                          </div>
+                        </div>
+
+                        <div className={`col-span-2 sm:col-span-1 rounded-xl bg-[#edf5fc] border border-blue-100 text-center ${compact ? "p-1.5" : "p-2.5"}`}>
+                          <div className="text-[9px] uppercase font-bold text-[#185891]">
+                            Raw (Unrounded)
+                          </div>
+                          <div className="mt-0.5 font-mono font-bold text-[#0d559c] truncate" title={String(calculation.raw)}>
+                            {calculation.raw}
+                          </div>
+                          <div className="mt-0.5 text-[10px] text-[#185891]">
+                            Exact result
+                          </div>
                         </div>
                       </div>
                     </div>

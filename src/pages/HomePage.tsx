@@ -27,32 +27,32 @@ export function HomePage({ go }: HomePageProps) {
         <div className="pointer-events-none absolute -top-32 -right-20 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
         <div className="pointer-events-none absolute bottom-0 left-0 h-72 w-72 rounded-full bg-sky-200/20 blur-3xl" />
 
-        <div className="site-container relative grid items-center gap-8 lg:gap-10 py-10 sm:py-14 lg:py-16 lg:grid-cols-[1.02fr_.98fr]">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative grid items-center gap-8 lg:gap-10 xl:gap-12 py-8 sm:py-12 lg:py-16 lg:grid-cols-[1fr_1.18fr] overflow-hidden">
           {/* Hero Content */}
-          <div className="animate-[fadeInUp_.7s_ease-out_both]">
+          <div className="animate-[fadeInUp_.7s_ease-out_both] min-w-0">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-[#2f75bd] shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md">
               <Icon name="spark" size={14} />
               <span>Precise answers, clearly explained</span>
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </div>
 
-            <h1 className="mt-5 max-w-xl text-[32px] sm:text-[44px] lg:text-[52px] font-bold leading-[1.1] tracking-[-.045em] text-[#0a2b4b] break-words">
+            <h1 className="mt-4 sm:mt-5 max-w-xl text-[28px] xs:text-[34px] sm:text-[44px] lg:text-[48px] xl:text-[52px] font-bold leading-[1.12] tracking-[-.04em] text-[#0a2b4b] break-words">
               Significant figures,
               <span className="block mt-1 bg-gradient-to-r from-[#2f75bd] to-[#60a5e8] bg-clip-text text-transparent">
                 made simple.
               </span>
             </h1>
 
-            <p className="mt-4 max-w-lg text-sm sm:text-base leading-relaxed text-slate-600">
+            <p className="mt-3 sm:mt-4 max-w-lg text-sm sm:text-base leading-relaxed text-slate-600">
               Count, round, and calculate with confidence. Get instant results
               plus the reasoning behind every answer.
             </p>
 
             {/* Buttons */}
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <div className="mt-5 sm:mt-6 flex flex-col xs:flex-row gap-3">
               <button
                 onClick={() => go("calculator")}
-                className="button-primary group w-full sm:w-auto justify-center px-5 py-3 shadow-lg shadow-blue-900/10 transition duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+                className="button-primary group w-full xs:w-auto justify-center px-5 py-3 shadow-lg shadow-blue-900/10 transition duration-300 hover:-translate-y-0.5 hover:shadow-xl"
               >
                 <Icon name="calculator" size={17} />
                 <span>Start calculating</span>
@@ -63,7 +63,7 @@ export function HomePage({ go }: HomePageProps) {
 
               <button
                 onClick={() => go("rules")}
-                className="button-secondary w-full sm:w-auto justify-center px-5 py-3 transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50"
+                className="button-secondary w-full xs:w-auto justify-center px-5 py-3 transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50"
               >
                 <Icon name="book" size={17} />
                 <span>Learn the rules</span>
@@ -71,7 +71,7 @@ export function HomePage({ go }: HomePageProps) {
             </div>
 
             {/* Trust Points */}
-            <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-slate-600 sm:gap-x-6">
+            <div className="mt-5 sm:mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-slate-600 sm:gap-x-6">
               {[
                 "No sign-up needed",
                 "Step-by-step reasoning",
@@ -91,9 +91,9 @@ export function HomePage({ go }: HomePageProps) {
           </div>
 
           {/* Calculator */}
-          <div className="relative mx-auto w-full max-w-xl lg:max-w-none animate-[fadeInUp_.8s_ease-out_.15s_both]">
-            <div className="absolute -inset-3 rounded-[2rem] bg-blue-200/20 blur-xl" />
-            <div className="relative transition duration-500 hover:-translate-y-0.5">
+          <div className="relative mx-auto w-full max-w-xl lg:max-w-none min-w-0 animate-[fadeInUp_.8s_ease-out_.15s_both]">
+            <div className="absolute -inset-3 rounded-[2rem] bg-blue-200/20 blur-xl pointer-events-none" />
+            <div className="relative transition duration-500 hover:-translate-y-0.5 w-full min-w-0">
               <Calculator compact />
             </div>
           </div>

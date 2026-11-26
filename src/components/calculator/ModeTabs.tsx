@@ -18,26 +18,24 @@ export function ModeTabs({ currentMode, onSelectMode, compact = false }: ModeTab
   ];
 
   return (
-    <div className={`border-b border-slate-200 ${compact ? "px-3 pt-1.5" : "px-4 pt-3 sm:px-6"}`}>
-      <div className="scrollbar-none flex overflow-x-auto gap-1">
-        {modes.map((item) => {
-          const isActive = currentMode === item.key;
-          return (
-            <button
-              key={item.key}
-              onClick={() => onSelectMode(item.key)}
-              className={`mode-tab flex items-center gap-1.5 transition whitespace-nowrap shrink-0 ${
-                compact ? "py-1.5 px-2.5 text-xs" : ""
-              } ${
-                isActive ? "active text-[#185891]" : "hover:text-slate-900"
-              }`}
-            >
-              <Icon name={item.icon} size={compact ? 13 : 15} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </div>
+    <div className={`w-full max-w-full overflow-x-auto scrollbar-none flex gap-1 ${compact ? "px-2 pt-1" : "px-3 sm:px-4 pt-2"}`}>
+      {modes.map((item) => {
+        const isActive = currentMode === item.key;
+        return (
+          <button
+            key={item.key}
+            onClick={() => onSelectMode(item.key)}
+            className={`mode-tab flex items-center gap-1.5 transition whitespace-nowrap shrink-0 ${
+              compact ? "py-1.5 px-2 text-[11px]" : "py-2 px-3 text-xs sm:text-sm"
+            } ${
+              isActive ? "active text-[#185891]" : "hover:text-slate-900"
+            }`}
+          >
+            <Icon name={item.icon} size={compact ? 12 : 14} />
+            <span>{item.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
