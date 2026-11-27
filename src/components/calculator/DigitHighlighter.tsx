@@ -12,7 +12,7 @@ export function DigitHighlighter({ value }: DigitHighlighterProps) {
   const dotIndex = plain.indexOf(".");
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-1 text-lg font-mono font-medium">
+    <div className="mt-2.5 flex flex-wrap items-center gap-1 font-mono text-base sm:text-lg font-medium max-w-full overflow-hidden break-all min-w-0">
       {[...plain].map((char, index) => {
         let significant = false;
         if (/\d/.test(char)) {

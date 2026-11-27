@@ -4,6 +4,7 @@ import {
   type Operation,
   analyzeSignificantFigures,
   analyzeRounding,
+  analyzeScientificNotation,
   countSignificantFigures,
   decimalPlaces,
 } from "../../utils/sigfig";
@@ -56,8 +57,9 @@ export function StepList({
   calculation,
   compact = false,
 }: StepListProps) {
-  const sigAnalysis = mode === "sigfig" ? analyzeSignificantFigures(value) : null;
+  const sigAnalysis = (mode === "count" || mode === "sigfig") ? analyzeSignificantFigures(value) : null;
   const roundAnalysis = mode === "round" ? analyzeRounding(value, figures) : null;
+  const sciAnalysis = mode === "scientific" ? analyzeScientificNotation(value, figures) : null;
 
   return (
     <div className={`${compact ? "mt-2.5 pt-2" : "mt-3.5 pt-3"} border-t border-slate-100/90 w-full min-w-0`}>
@@ -75,7 +77,8 @@ export function StepList({
             : "space-y-1.5 text-xs max-h-[220px]"
         } overflow-y-auto pr-1 scrollbar-thin`}
       >
-        {mode === "count" && (
+        {/* SigFig Tab: Swapped to display concise counting rules */}
+        {mode === "sigfig" && (
           <>
             <StepItem text="Ignore leading zeros; they only locate the decimal point." compact={compact} />
             <StepItem text="Count every non-zero digit and zeros captive between non-zero digits." compact={compact} />
@@ -83,7 +86,8 @@ export function StepList({
           </>
         )}
 
-        {mode === "sigfig" && sigAnalysis && (
+        {/* Count Tab: Swapped to display detailed step-by-step breakdown */}
+        {mode === "count" && sigAnalysis && (
           <>
             {sigAnalysis.steps.map((step, idx) => (
               <StepItem key={idx} text={step} compact={compact} />
@@ -107,7 +111,16 @@ export function StepList({
           </>
         )}
 
-        {mode === "scientific" && (
+        {/* Scientific Notation Tab: Dynamic step-by-step deduction */}
+        {mode === "scientific" && sciAnalysis && (
+          <>
+            {sciAnalysis.steps.map((step, idx) => (
+              <StepItem key={idx} text={step} compact={compact} />
+            ))}
+          </>
+        )}
+
+        {mode === "scientific" && !sciAnalysis && (
           <>
             <StepItem text="Position the decimal point immediately after the first non-zero digit." compact={compact} />
             <StepItem text="Count the number of places shifted to determine the exponent of 10." compact={compact} />

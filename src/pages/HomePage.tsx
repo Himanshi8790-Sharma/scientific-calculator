@@ -12,6 +12,7 @@ import { AudienceSection } from "../components/sections/AudienceSection";
 import { LearnSection } from "../components/sections/LearnSection";
 import { FaqSection } from "../components/sections/FaqSection";
 import { CtaSection } from "../components/sections/CtaSection";
+import CalculationInfo from "@/components/sections/CalculationInfo";
 
 interface HomePageProps {
   go: (p: Page) => void;
@@ -116,6 +117,8 @@ export function HomePage({ go }: HomePageProps) {
 
       {/* 06 · Common mistakes */}
       <CommonMistakesSection />
+
+      <CalculationInfo />
 
       {/* 07 · Who it’s for */}
       <AudienceSection />

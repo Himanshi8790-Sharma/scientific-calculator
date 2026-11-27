@@ -633,3 +633,172 @@ export function analyzeRounding(input: string, figures: number): RoundingAnalysi
     steps,
   };
 }
+
+export interface ScientificNotationAnalysis {
+  originalValue: string;
+  targetFigures: number;
+  coefficient: string;
+  exponent: number;
+  formattedResult: string;
+  eNotation: string;
+  steps: string[];
+}
+
+export function analyzeScientificNotation(
+  input: string,
+  figures: number
+): ScientificNotationAnalysis | null {
+  if (!isValidNumber(input) || figures < 1) return null;
+  const norm = normalizeNumericInput(input);
+  const formattedResult = toScientificNotation(input, figures);
+  const eNotation = toENotation(input, figures);
+  const clean = norm.replace(/^[+-]/, "");
+  const sign = norm.startsWith("-") ? "-" : "";
+
+  const [mantissaRaw, expText] = clean.toLowerCase().split("e");
+  const inputExp = expText ? parseInt(expText, 10) : 0;
+  const firstNonZero = mantissaRaw.search(/[1-9]/);
+
+  const steps: string[] = [];
+
+  // Zero case
+  if (firstNonZero === -1) {
+    const coeff = figures === 1 ? "0" : "0." + "0".repeat(figures - 1);
+    steps.push(`First digit: The input is 0 (zero has no non-zero leading digit).`);
+    steps.push(`Decimal shift: No shift required; value remains at zero with exponent 0 (10⁰).`);
+    steps.push(
+      `Coefficient precision: Written as '${coeff}' to represent exactly ${figures} significant figure${
+        figures === 1 ? "" : "s"
+      }.`
+    );
+    steps.push(`Final notation: 0 in scientific notation is ${coeff} × 10⁰ (or ${coeff}e+0).`);
+    return {
+      originalValue: norm,
+      targetFigures: figures,
+      coefficient: coeff,
+      exponent: 0,
+      formattedResult: `${coeff} × 10⁰`,
+      eNotation: `${coeff}e+0`,
+      steps,
+    };
+  }
+
+  const parsed = getSignificantDigits(input, figures);
+  const finalPower = parsed.power;
+  const mantissaDigits = parsed.digits;
+  let finalMantissa = mantissaDigits[0];
+  if (figures > 1) {
+    finalMantissa += "." + mantissaDigits.slice(1);
+  }
+  const coefficient = `${sign}${finalMantissa}`;
+
+  const firstChar = mantissaRaw[firstNonZero];
+
+  // Step 1: First non-zero digit
+  steps.push(
+    `First digit: Locate first non-zero digit '${firstChar}' in ${norm}${
+      firstNonZero > 0 ? " (ignoring leading zeros)" : ""
+    } to anchor the coefficient.`
+  );
+
+  // Step 2: Decimal movement & Exponent
+  let decPos = mantissaRaw.indexOf(".");
+  if (decPos === -1) {
+    decPos = mantissaRaw.length;
+  }
+
+  let initialShift = 0;
+  let direction: "left" | "right" | "none" = "none";
+
+  if (decPos > firstNonZero + 1) {
+    initialShift = decPos - 1 - firstNonZero;
+    direction = "left";
+  } else if (decPos < firstNonZero) {
+    initialShift = firstNonZero - decPos;
+    direction = "right";
+  } else {
+    initialShift = 0;
+    direction = "none";
+  }
+
+  if (direction === "left") {
+    steps.push(
+      `Decimal shift: Move decimal ${initialShift} place${
+        initialShift === 1 ? "" : "s"
+      } LEFT to position after '${firstChar}' → Exponent is positive (+${finalPower}) because original number is ≥ 10 (10${toSuperscript(
+        finalPower
+      )}).`
+    );
+  } else if (direction === "right") {
+    steps.push(
+      `Decimal shift: Move decimal ${initialShift} place${
+        initialShift === 1 ? "" : "s"
+      } RIGHT to position after '${firstChar}' → Exponent is negative (${finalPower}) because original number is < 1 (10${toSuperscript(
+        finalPower
+      )}).`
+    );
+  } else {
+    steps.push(
+      `Decimal shift: Decimal is already located directly after '${firstChar}' (0 places shifted) → Exponent is ${
+        finalPower >= 0 ? "+" + finalPower : finalPower
+      } (10${toSuperscript(finalPower)}).`
+    );
+  }
+
+  // Step 3: Coefficient precision & Rounding
+  let allSigDigits = "";
+  if (decPos !== -1) {
+    const rawNoDec = mantissaRaw.replace(".", "");
+    allSigDigits = rawNoDec.slice(firstNonZero > decPos ? firstNonZero - 1 : firstNonZero);
+  } else {
+    allSigDigits = mantissaRaw.slice(firstNonZero);
+  }
+
+  const availableDigits = allSigDigits.length;
+
+  if (availableDigits < figures) {
+    const padCount = figures - availableDigits;
+    steps.push(
+      `Coefficient precision: Original number has ${availableDigits} significant digit${
+        availableDigits === 1 ? "" : "s"
+      }; padded with ${padCount} trailing zero${
+        padCount === 1 ? "" : "s"
+      } to preserve exactly ${figures} sig figs → Mantissa is '${finalMantissa}'.`
+    );
+  } else if (availableDigits === figures) {
+    steps.push(
+      `Coefficient precision: Retains all ${figures} significant digit${
+        figures === 1 ? "" : "s"
+      } without rounding → Mantissa is '${finalMantissa}'.`
+    );
+  } else {
+    const checkChar = allSigDigits[figures];
+    const checkVal = parseInt(checkChar, 10);
+    const lastKept = allSigDigits[figures - 1];
+
+    if (checkVal >= 5) {
+      steps.push(
+        `Coefficient precision: For ${figures} sig figs, next digit after '${lastKept}' is '${checkChar}' (≥ 5 → Round UP) → Mantissa is '${finalMantissa}'.`
+      );
+    } else {
+      steps.push(
+        `Coefficient precision: For ${figures} sig figs, next digit after '${lastKept}' is '${checkChar}' (< 5 → Keep unchanged) → Mantissa is '${finalMantissa}'.`
+      );
+    }
+  }
+
+  // Step 4: Final Scientific Notation
+  steps.push(
+    `Final notation: Combine coefficient and power of 10 → ${formattedResult} (or ${eNotation}).`
+  );
+
+  return {
+    originalValue: norm,
+    targetFigures: figures,
+    coefficient,
+    exponent: finalPower,
+    formattedResult,
+    eNotation,
+    steps,
+  };
+}

@@ -22,4 +22,5 @@ export const navItems: NavItem[] = [
   { label: "Examples", page: "examples" },
   { label: "How it works", page: "how-it-works" },
   { label: "Learn", page: "blog" },
+  { label: "About", page: "about" },
 ];

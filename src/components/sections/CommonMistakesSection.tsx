@@ -26,7 +26,7 @@ const mistakes = [
 
 export function CommonMistakesSection() {
   return (
-    <section className="relative overflow-hidden  py-16 sm:py-20">
+    <section className="relative overflow-hidden  py-16 sm:pt-20">
       {/* Background Decoration */}
       <div className="pointer-events-none absolute -left-32 top-20 h-72 w-72 rounded-full bg-blue-100/60 blur-[100px]" />
       <div className="pointer-events-none absolute -bottom-32 right-0 h-80 w-80 rounded-full bg-sky-100/70 blur-[100px]" />

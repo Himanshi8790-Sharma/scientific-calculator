@@ -3,6 +3,46 @@
 
 @theme {
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+
+  /* Centralized Brand Color Palette */
+  --color-brand-dark: #0a2b4b;
+  --color-brand-navy: #102e50;
+  --color-brand-primary: #174f84;
+  --color-brand-primary-hover: #0d3c6a;
+  --color-brand-accent: #185891;
+  --color-brand-accent-hover: #144f85;
+  --color-brand-blue: #2f75bd;
+  --color-brand-sky: #60a5e8;
+  --color-brand-light: #d9ebff;
+  --color-brand-subtle: #edf5fc;
+  --color-brand-surface: #f8fbfe;
+  --color-brand-bg: #f4f8fc;
+  --color-brand-border: #dce5ed;
+  --color-brand-border-subtle: #e0e7ed;
+  --color-brand-text: #142c44;
+  --color-brand-text-muted: #607184;
+  --color-brand-text-subtle: #697a8b;
+}
+
+:root {
+  /* CSS Variables for use in standard stylesheets and components */
+  --brand-dark: #0a2b4b;
+  --brand-navy: #102e50;
+  --brand-primary: #174f84;
+  --brand-primary-hover: #0d3c6a;
+  --brand-accent: #185891;
+  --brand-accent-hover: #144f85;
+  --brand-blue: #2f75bd;
+  --brand-sky: #60a5e8;
+  --brand-light: #d9ebff;
+  --brand-subtle: #edf5fc;
+  --brand-surface: #f8fbfe;
+  --brand-bg: #f4f8fc;
+  --brand-border: #dce5ed;
+  --brand-border-subtle: #e0e7ed;
+  --brand-text: #142c44;
+  --brand-text-muted: #607184;
+  --brand-text-subtle: #697a8b;
 }
 
 @layer base {
@@ -11,7 +51,7 @@
   }
   body {
     font-family: "Poppins", sans-serif;
-    color: #142c44;
+    color: var(--brand-text);
     background: white;
   }
   button,
@@ -23,8 +63,8 @@
     opacity: 0.55;
   }
   ::selection {
-    background: #cfe6fb;
-    color: #0a2b4b;
+    background: var(--brand-light);
+    color: var(--brand-dark);
   }
 }
 
@@ -43,7 +83,7 @@
   }
   .nav-link:hover,
   .nav-link.active {
-    color: #174f84;
+    color: var(--brand-primary);
     background: #f1f6fb;
   }
   .button-primary {
@@ -51,7 +91,7 @@
     align-items: center;
     gap: 0.55rem;
     border-radius: 0.75rem;
-    background: #174f84;
+    background: var(--brand-primary);
     color: white;
     font-size: 0.78rem;
     font-weight: 600;
@@ -59,7 +99,7 @@
     transition: 0.2s;
   }
   .button-primary:hover {
-    background: #0d3c6a;
+    background: var(--brand-primary-hover);
     transform: translateY(-1px);
   }
   .button-secondary {
@@ -76,7 +116,7 @@
   }
   .button-secondary:hover {
     border-color: #aac6df;
-    background: #f8fbfe;
+    background: var(--brand-surface);
   }
   .eyebrow {
     display: flex;
@@ -84,13 +124,13 @@
     align-items: center;
     gap: 0.4rem;
     border-radius: 999px;
-    background: #e7f2fc;
+    background: var(--brand-subtle);
     padding: 0.45rem 0.75rem;
     font-size: 0.65rem;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #2167a6;
+    color: var(--brand-accent);
   }
   .eyebrow.dark {
     background: rgba(102, 173, 235, 0.12);
@@ -98,7 +138,7 @@
   }
   .calculator-shell {
     overflow: hidden;
-    border: 1px solid #dce5ed;
+    border: 1px solid var(--brand-border);
     border-radius: 1.5rem;
     background: white;
     box-shadow: 0 22px 65px rgba(31, 69, 102, 0.1);
@@ -115,7 +155,7 @@
     color: #75879a;
   }
   .mode-tab.active {
-    color: #185891;
+    color: var(--brand-accent);
     font-weight: 600;
   }
   .mode-tab.active::after {
@@ -124,7 +164,7 @@
     inset: auto 0.8rem -1px;
     height: 2px;
     border-radius: 2px 2px 0 0;
-    background: #2d73b4;
+    background: var(--brand-blue);
   }
   .number-input {
     width: 100%;
@@ -133,7 +173,7 @@
     border-radius: 0.8rem;
     background: white;
     padding: 0.85rem 1rem;
-    color: #102e50;
+    color: var(--brand-navy);
     font-size: 1.03rem;
     font-weight: 500;
     outline: none;
@@ -157,7 +197,7 @@
     color: #607487;
   }
   .figure-button.active {
-    border-color: #2f75b5;
+    border-color: var(--brand-blue);
     background: #edf6ff;
     color: #185a96;
   }
@@ -178,7 +218,7 @@
     box-shadow: 0 6px 20px rgba(41, 79, 111, 0.05);
   }
   .subpage-hero {
-    background: #f4f8fc;
+    background: var(--brand-bg);
     padding: 4.5rem 0 5.5rem;
   }
   .subpage-hero h1 {
@@ -187,14 +227,14 @@
     line-height: 1.12;
     font-weight: 600;
     letter-spacing: -0.045em;
-    color: #0a2b4b;
+    color: var(--brand-dark);
   }
   .subpage-hero p {
     max-width: 650px;
     margin: 1rem auto 0;
     font-size: 0.9rem;
     line-height: 1.8;
-    color: #607184;
+    color: var(--brand-text-muted);
   }
   .section-heading {
     margin-inline: auto;
@@ -206,17 +246,17 @@
     font-size: clamp(1.8rem, 4vw, 2.4rem);
     font-weight: 600;
     letter-spacing: -0.035em;
-    color: #102e50;
+    color: var(--brand-navy);
   }
   .section-heading p {
     margin-top: 0.75rem;
     font-size: 0.85rem;
     line-height: 1.7;
-    color: #697a8b;
+    color: var(--brand-text-subtle);
   }
   .feature-card,
   .info-card {
-    border: 1px solid #e0e7ed;
+    border: 1px solid var(--brand-border-subtle);
     border-radius: 1.2rem;
     background: white;
     padding: 1.4rem;
@@ -232,7 +272,7 @@
     margin-top: 1rem;
     font-size: 0.96rem;
     font-weight: 600;
-    color: #102e50;
+    color: var(--brand-navy);
   }
   .feature-card p,
   .info-card p {
@@ -250,14 +290,14 @@
     height: 2.6rem;
     place-items: center;
     border-radius: 0.8rem;
-    background: #ebf4fc;
-    color: #286ba7;
+    background: var(--brand-subtle);
+    color: var(--brand-accent);
   }
   .rule-card {
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 1rem;
-    border: 1px solid #e0e7ed;
+    border: 1px solid var(--brand-border-subtle);
     border-radius: 1.25rem;
     padding: 1.5rem;
   }
@@ -267,7 +307,7 @@
     height: 2.5rem;
     place-items: center;
     border-radius: 0.75rem;
-    background: #174f84;
+    background: var(--brand-primary);
     color: white;
     font-size: 0.8rem;
     font-weight: 600;
@@ -275,7 +315,7 @@
   .rule-card h2 {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #102e50;
+    color: var(--brand-navy);
   }
   .rule-card p {
     margin-top: 0.45rem;
@@ -286,7 +326,7 @@
   .example-strip {
     margin-top: 1rem;
     border-radius: 0.6rem;
-    background: #f4f8fc;
+    background: var(--brand-bg);
     padding: 0.65rem 0.8rem;
     font-size: 0.7rem;
     font-weight: 500;
@@ -301,24 +341,24 @@
     color: #627487;
   }
   .filter-pill.active {
-    border-color: #174f84;
-    background: #174f84;
+    border-color: var(--brand-primary);
+    background: var(--brand-primary);
     color: white;
   }
   .example-card {
-    border: 1px solid #e0e7ed;
+    border: 1px solid var(--brand-border-subtle);
     border-radius: 1.25rem;
     padding: 1.35rem;
   }
   .category-label {
     border-radius: 999px;
-    background: #ebf4fc;
+    background: var(--brand-subtle);
     padding: 0.35rem 0.65rem;
     font-size: 0.61rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #286ba7;
+    color: var(--brand-accent);
   }
   .example-card h2 {
     min-height: 3.8rem;
@@ -326,7 +366,7 @@
     font-size: 0.93rem;
     line-height: 1.55;
     font-weight: 600;
-    color: #102e50;
+    color: var(--brand-navy);
   }
   .step-dot {
     display: grid;
@@ -356,7 +396,7 @@
   }
   .answer-box strong {
     font-size: 0.8rem;
-    color: #174f84;
+    color: var(--brand-primary);
   }
   .process-row {
     display: grid;
@@ -369,12 +409,12 @@
   .process-number {
     font-size: 0.7rem;
     font-weight: 600;
-    color: #3f7db7;
+    color: var(--brand-blue);
   }
   .process-copy h2 {
     font-size: 1rem;
     font-weight: 600;
-    color: #102e50;
+    color: var(--brand-navy);
   }
   .process-copy p {
     max-width: 500px;
@@ -388,7 +428,7 @@
     line-height: 1.25;
     font-weight: 600;
     letter-spacing: -0.035em;
-    color: #102e50;
+    color: var(--brand-navy);
   }
   .content-copy {
     margin-top: 1.4rem;
@@ -475,7 +515,7 @@
     font-size: 0.9rem;
     line-height: 1.5;
     font-weight: 600;
-    color: #102e50;
+    color: var(--brand-navy);
   }
   .article-card p {
     margin-top: 0.65rem;
@@ -499,7 +539,7 @@
     line-height: 1.3;
     font-weight: 600;
     letter-spacing: -0.025em;
-    color: #102e50;
+    color: var(--brand-navy);
   }
   .prose-custom h3 {
     margin: 1.8rem 0 0.6rem;
@@ -538,7 +578,7 @@
   }
   .math-example strong {
     font-size: 1.5rem;
-    color: #174f84;
+    color: var(--brand-primary);
   }
   .math-example small {
     color: #738496;
@@ -571,7 +611,7 @@
   .legal-copy h2 {
     font-size: 1.15rem;
     font-weight: 600;
-    color: #102e50;
+    color: var(--brand-navy);
   }
   .legal-copy p {
     margin-top: 0.65rem;

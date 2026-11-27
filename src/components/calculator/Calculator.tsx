@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import type { Mode } from "../../types";
 import {
   analyzeRounding,
+  analyzeScientificNotation,
   analyzeSignificantFigures,
   calculateWithSigFigs,
   countSignificantFigures,
@@ -12,6 +13,7 @@ import {
   toDecimalNotation,
   toENotation,
   toScientificNotation,
+  toSuperscript,
 } from "../../utils/sigfig";
 import { Icon } from "../common/Icons";
 import { ModeTabs } from "./ModeTabs";
@@ -57,13 +59,18 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
   }, [submittedData, mode, activeValue, activeOperation, activeSecondValue]);
 
   const sigAnalysis = useMemo(() => {
-    if (!submittedData || mode !== "sigfig") return null;
+    if (!submittedData || (mode !== "sigfig" && mode !== "count")) return null;
     return analyzeSignificantFigures(activeValue);
   }, [submittedData, mode, activeValue]);
 
   const roundAnalysis = useMemo(() => {
     if (!submittedData || mode !== "round") return null;
     return analyzeRounding(activeValue, activeFigures);
+  }, [submittedData, mode, activeValue, activeFigures]);
+
+  const sciAnalysis = useMemo(() => {
+    if (!submittedData || mode !== "scientific") return null;
+    return analyzeScientificNotation(activeValue, activeFigures);
   }, [submittedData, mode, activeValue, activeFigures]);
 
   const result = useMemo(() => {
@@ -365,15 +372,15 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
             ) : showResult ? (
               <>
                 {/* Result Card */}
-                <div className={`result-card rounded-2xl border border-blue-100/80 bg-white shadow-sm transition duration-300 hover:shadow-md ${
-                  compact ? "p-3 sm:p-4" : "p-4 sm:p-5"
+                <div className={`result-card rounded-2xl border border-blue-100/80 bg-white shadow-sm transition duration-300 hover:shadow-md w-full min-w-0 overflow-hidden ${
+                  compact ? "p-3 sm:p-3.5" : "p-4 sm:p-5"
                 }`}>
-                  <div className="flex items-center justify-between">
-                    <div className={`${compact ? "text-xs" : "text-sm"} font-medium text-slate-500`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className={`${compact ? "text-xs" : "text-sm"} font-medium text-slate-500 truncate`}>
                       {mode === "count"
-                        ? "Significant figures"
+                        ? "Total Significant Figures"
                         : mode === "sigfig"
-                          ? "Total Significant Figures"
+                          ? "Significant figures"
                           : mode === "round"
                             ? `Rounded to ${activeFigures} Significant Figures`
                             : mode === "calculate"
@@ -381,29 +388,34 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                               : "Scientific notation"}
                     </div>
                     {mode === "count" && (
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
+                      <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
                         Count Analysis
                       </span>
                     )}
                     {mode === "sigfig" && (
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
+                      <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
                         SigFig Analysis
                       </span>
                     )}
                     {mode === "round" && (
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
+                      <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
                         Round Analysis
                       </span>
                     )}
                     {mode === "calculate" && (
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
+                      <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
                         Calculation Result
+                      </span>
+                    )}
+                    {mode === "scientific" && (
+                      <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-semibold text-[#185891]">
+                        Scientific Analysis
                       </span>
                     )}
                   </div>
 
                   <div className={`break-all font-bold tracking-[-.04em] text-[#123f73] transition-all duration-300 ${
-                    compact ? "mt-1 text-[28px] sm:text-[34px]" : "mt-2 text-[34px] sm:text-[42px]"
+                    compact ? "mt-0.5 text-2xl sm:text-3xl" : "mt-1.5 text-3xl sm:text-4xl"
                   }`}>
                     {result}
                   </div>
@@ -412,44 +424,44 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                     <DigitHighlighter value={activeValue} />
                   )}
 
-                  {/* SigFig Mode Significant Digits Display */}
-                  {mode === "sigfig" && sigAnalysis && sigAnalysis.significantDigits.length > 0 && (
+                  {/* Count Mode Significant Digits Display (Swapped from SigFig) */}
+                  {mode === "count" && sigAnalysis && sigAnalysis.significantDigits.length > 0 && (
                     <div className={`flex flex-wrap items-center gap-1.5 ${compact ? "mt-1.5 text-[11px]" : "mt-2 text-xs"} text-slate-500`}>
                       <span className="font-semibold text-slate-700">Significant digits:</span>
-                      <span className="font-mono font-bold text-[#185891]">
+                      <span className="font-mono font-bold text-[#185891] break-all">
                         {sigAnalysis.significantDigits.join(", ")}
                       </span>
                     </div>
                   )}
 
-                  {/* Count Tab Complete Result Metrics */}
-                  {mode === "count" && submittedData && (
-                    <div className={`${compact ? "mt-3 space-y-1.5 pt-2.5 text-[11px]" : "mt-5 space-y-2 pt-4 text-xs"} border-t border-slate-100`}>
-                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
+                  {/* SigFig Tab Complete Result Metrics (Swapped from Count) */}
+                  {mode === "sigfig" && submittedData && (
+                    <div className={`${compact ? "mt-2.5 space-y-1 pt-2 text-[11px]" : "mt-4 space-y-1.5 pt-3 text-xs"} border-t border-slate-100`}>
+                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1" : "px-3 py-2"}`}>
                         <span className="font-medium text-slate-600">Decimal notation</span>
                         <span className="font-mono font-bold text-[#102e50] max-w-[50%] truncate text-right">
                           {toDecimalNotation(activeValue)}
                         </span>
                       </div>
-                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
-                        <span className="font-medium text-slate-600">Number of significant figures</span>
+                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1" : "px-3 py-2"}`}>
+                        <span className="font-medium text-slate-600">Significant figures</span>
                         <span className="font-bold text-[#185891]">
                           {countSignificantFigures(activeValue)}
                         </span>
                       </div>
-                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
+                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1" : "px-3 py-2"}`}>
                         <span className="font-medium text-slate-600">Number of decimals</span>
                         <span className="font-mono font-bold text-[#102e50]">
                           {decimalPlaces(activeValue)}
                         </span>
                       </div>
-                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
+                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1" : "px-3 py-2"}`}>
                         <span className="font-medium text-slate-600">Scientific notation</span>
                         <span className="font-mono font-bold text-[#102e50] max-w-[50%] truncate text-right">
                           {toScientificNotation(activeValue)}
                         </span>
                       </div>
-                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2.5"}`}>
+                      <div className={`flex items-center justify-between gap-2 rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1" : "px-3 py-2"}`}>
                         <span className="font-medium text-slate-600">E notation</span>
                         <span className="font-mono font-bold text-[#102e50] max-w-[50%] truncate text-right">
                           {toENotation(activeValue)}
@@ -458,37 +470,37 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                     </div>
                   )}
 
-                  {/* SigFig Mode Detailed Anatomy Breakdown */}
-                  {mode === "sigfig" && sigAnalysis && (
+                  {/* Count Mode Detailed Anatomy Breakdown (Swapped from SigFig) */}
+                  {mode === "count" && sigAnalysis && (
                     <div className={`grid grid-cols-2 border-t border-slate-100 sm:grid-cols-4 ${
-                      compact ? "mt-2.5 gap-1.5 pt-2 text-[11px]" : "mt-4 gap-2 pt-3 text-xs"
+                      compact ? "mt-2 gap-1 pt-2 text-[11px]" : "mt-3 gap-2 pt-2.5 text-xs"
                     }`}>
-                      <div className={`rounded-xl bg-[#f7fafc] text-center ${compact ? "p-1.5" : "p-2"}`}>
-                        <div className="text-[9px] uppercase font-bold text-slate-400">
+                      <div className={`rounded-xl bg-[#f7fafc] text-center min-w-0 overflow-hidden ${compact ? "p-1.5" : "p-2"}`}>
+                        <div className="text-[9px] uppercase font-bold text-slate-400 truncate">
                           Non-Zero
                         </div>
                         <div className="mt-0.5 font-bold text-[#102e50]">
                           {sigAnalysis.nonZeroCount}
                         </div>
                       </div>
-                      <div className={`rounded-xl bg-[#f7fafc] text-center ${compact ? "p-1.5" : "p-2"}`}>
-                        <div className="text-[9px] uppercase font-bold text-slate-400">
+                      <div className={`rounded-xl bg-[#f7fafc] text-center min-w-0 overflow-hidden ${compact ? "p-1.5" : "p-2"}`}>
+                        <div className="text-[9px] uppercase font-bold text-slate-400 truncate">
                           Captive
                         </div>
                         <div className="mt-0.5 font-bold text-[#102e50]">
                           {sigAnalysis.captiveZeros}
                         </div>
                       </div>
-                      <div className={`rounded-xl bg-[#f7fafc] text-center ${compact ? "p-1.5" : "p-2"}`}>
-                        <div className="text-[9px] uppercase font-bold text-slate-400">
+                      <div className={`rounded-xl bg-[#f7fafc] text-center min-w-0 overflow-hidden ${compact ? "p-1.5" : "p-2"}`}>
+                        <div className="text-[9px] uppercase font-bold text-slate-400 truncate">
                           Trailing
                         </div>
                         <div className="mt-0.5 font-bold text-[#102e50]">
                           {sigAnalysis.trailingZeros}
                         </div>
                       </div>
-                      <div className={`rounded-xl bg-[#f7fafc] text-center ${compact ? "p-1.5" : "p-2"}`}>
-                        <div className="text-[9px] uppercase font-bold text-slate-400">
+                      <div className={`rounded-xl bg-[#f7fafc] text-center min-w-0 overflow-hidden ${compact ? "p-1.5" : "p-2"}`}>
+                        <div className="text-[9px] uppercase font-bold text-slate-400 truncate">
                           Leading
                         </div>
                         <div className="mt-0.5 font-bold text-slate-500">
@@ -611,6 +623,83 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                             </span>
                           )}
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Scientific Mode Detailed Result & Breakdown Cards */}
+                  {mode === "scientific" && sciAnalysis && (
+                    <div
+                      className={`${compact ? "mt-2.5 space-y-1.5 pt-2" : "mt-3.5 space-y-2 pt-2.5"} border-t border-slate-100`}
+                    >
+                      {/* 4 Summary Cards */}
+                      <div
+                        className={`grid grid-cols-2 sm:grid-cols-4 ${compact ? "gap-1 text-[11px]" : "gap-2 text-xs"}`}
+                      >
+                        <div
+                          className={`rounded-xl bg-[#f8fbfe] border border-slate-100/80 text-center min-w-0 overflow-hidden ${compact ? "p-1.5" : "p-2"}`}
+                        >
+                          <div className="text-[9px] uppercase font-bold text-slate-400 truncate">
+                            Original Number
+                          </div>
+                          <div
+                            className="mt-0.5 font-mono font-bold text-[#102e50] truncate"
+                            title={activeValue}
+                          >
+                            {activeValue}
+                          </div>
+                        </div>
+
+                        <div
+                          className={`rounded-xl bg-[#f8fbfe] border border-slate-100/80 text-center min-w-0 overflow-hidden ${compact ? "p-1.5" : "p-2"}`}
+                        >
+                          <div className="text-[9px] uppercase font-bold text-slate-400 truncate">
+                            Target Sig Figs
+                          </div>
+                          <div className="mt-0.5 font-bold text-[#185891]">
+                            {activeFigures}
+                          </div>
+                        </div>
+
+                        <div
+                          className={`rounded-xl bg-[#f8fbfe] border border-slate-100/80 text-center min-w-0 overflow-hidden ${compact ? "p-1.5" : "p-2"}`}
+                        >
+                          <div className="text-[9px] uppercase font-bold text-slate-400 truncate">
+                            Coefficient
+                          </div>
+                          <div
+                            className="mt-0.5 font-mono font-bold text-[#0d559c] truncate"
+                            title={sciAnalysis.coefficient}
+                          >
+                            {sciAnalysis.coefficient}
+                          </div>
+                        </div>
+
+                        <div
+                          className={`rounded-xl bg-[#edf5fc] border border-blue-100 text-center min-w-0 overflow-hidden ${compact ? "p-1.5" : "p-2"}`}
+                        >
+                          <div className="text-[9px] uppercase font-bold text-[#185891] truncate">
+                            Power of 10
+                          </div>
+                          <div
+                            className="mt-0.5 font-mono font-bold text-[#0d559c] truncate"
+                            title={`10${toSuperscript(sciAnalysis.exponent)}`}
+                          >
+                            10{toSuperscript(sciAnalysis.exponent)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Normalized E-Notation Card */}
+                      <div
+                        className={`flex items-center justify-between rounded-xl bg-[#f8fbfe] border border-slate-100/80 ${compact ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-xs"}`}
+                      >
+                        <span className="font-medium text-slate-600">
+                          E-Notation
+                        </span>
+                        <span className="font-mono font-bold text-[#102e50]">
+                          {sciAnalysis.eNotation}
+                        </span>
                       </div>
                     </div>
                   )}
