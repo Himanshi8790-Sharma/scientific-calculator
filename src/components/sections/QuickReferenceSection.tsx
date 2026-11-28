@@ -1,4 +1,5 @@
 import React from "react";
+import { Icon } from "../common/Icons";
 
 interface ReferenceRow {
   number: string;
@@ -18,25 +19,36 @@ const referenceData: ReferenceRow[] = [
 ];
 
 export function QuickReferenceSection() {
-  // Duplicate items for seamless looping
   const loopData = [...referenceData, ...referenceData];
 
   return (
-    <section className="site-container py-10 sm:py-14 overflow-hidden">
+    <section className="site-container overflow-hidden py-10">
       {/* Header */}
-      <div className="mb-7">
-        <div className="eyebrow mb-2">
+      {/* <div className="mb-7 text-center">
+        <div className="eyebrow mb-2 justify-center">
           <span>QUICK REFERENCE</span>
         </div>
 
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0a2b4b]">
+        <h2 className="text-2xl font-bold tracking-tight text-[#0a2b4b] sm:text-3xl">
           Quick reference
         </h2>
 
-        <p className="mt-2 text-sm sm:text-base text-slate-500">
+        <p className="mt-2 text-sm text-slate-500 sm:text-base">
           Common numbers and how many significant figures they have.
         </p>
-      </div>
+      </div> */}
+       <div className="text-center max-w-2xl mx-auto">
+              <div className="eyebrow mx-auto mb-2.5">
+                <Icon name="book" size={12} />
+                <span>Quick Reference</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#0a2b4b]">
+               Quick Reference
+              </h2>
+              <p className="mt-2 text-sm sm:text-base text-slate-500 mb-10gf">
+                Common numbers and how many significant figures they have.
+              </p>
+            </div>
 
       {/* Auto Scrolling Cards */}
       <div className="reference-marquee overflow-hidden">
@@ -44,12 +56,13 @@ export function QuickReferenceSection() {
           {loopData.map((row, index) => (
             <div
               key={`${row.number}-${index}`}
-              className="reference-card group flex w-[260px] sm:w-[280px] shrink-0 flex-col rounded-2xl border border-slate-200 bg-white p-5 transition-colors duration-300 hover:border-blue-200 hover:bg-[#f8fbff]"
+              className="reference-card group flex w-[260px] shrink-0 flex-col rounded-2xl border border-slate-200 bg-white p-5 transition-colors duration-300 hover:border-blue-200 hover:bg-[#f8fbff] sm:w-[280px]"
             >
               {/* Top */}
               <div className="mb-5 flex items-center justify-between">
                 <span className="text-[11px] font-semibold tracking-widest text-slate-400">
-                  EXAMPLE {String((index % referenceData.length) + 1).padStart(2, "0")}
+                  EXAMPLE{" "}
+                  {String((index % referenceData.length) + 1).padStart(2, "0")}
                 </span>
 
                 <span className="rounded-md bg-[#f1f6fb] px-2.5 py-1 text-xs font-semibold text-[#174f84]">

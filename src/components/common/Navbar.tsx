@@ -1,3 +1,103 @@
+// import React, { useState } from "react";
+// import type { Page } from "../../types";
+// import { navItems } from "../../data/navigation";
+// import { Logo } from "./Logo";
+// import { Icon } from "./Icons";
+
+// interface NavbarProps {
+//   page: Page;
+//   go: (page: Page) => void;
+// }
+
+// export function Navbar({ page, go }: NavbarProps) {
+//   const [open, setOpen] = useState(false);
+
+//   return (
+//     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl transition-all">
+//       <div className="site-container flex h-[72px] items-center justify-between">
+//         <Logo onClick={() => go("home")} />
+
+//         {/* Desktop Navigation */}
+//         <nav
+//           className="hidden items-center gap-1 lg:flex"
+//           aria-label="Main Navigation"
+//         >
+//           {navItems.map((item) => (
+//             <button
+//               key={item.page}
+//               onClick={() => go(item.page)}
+//               className={`nav-link ${page === item.page ? "active" : ""}`}
+//             >
+//               {item.label}
+//             </button>
+//           ))}
+//         </nav>
+
+//         {/* Desktop CTA */}
+//         <div className="hidden items-center gap-3 lg:flex">
+//           <button
+//             onClick={() => go("calculator")}
+//             className="button-primary h-10 px-5 shadow-sm"
+//           >
+//             <Icon name="calculator" size={16} />
+//             <span>Open calculator</span>
+//             <Icon name="arrow" size={15} />
+//           </button>
+//         </div>
+
+//         {/* Mobile Hamburger */}
+//         <button
+//           className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50 lg:hidden"
+//           onClick={() => setOpen(!open)}
+//           aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+//           aria-expanded={open}
+//         >
+//           <Icon name={open ? "close" : "menu"} size={18} />
+//         </button>
+//       </div>
+
+//       {/* Mobile Drawer */}
+//       {open && (
+//         <div className="border-t border-slate-100 bg-white px-5 py-4 shadow-lg lg:hidden animate-in fade-in duration-150">
+//           <div className="mx-auto flex max-w-xl flex-col gap-1">
+//             {navItems.map((item) => (
+//               <button
+//                 key={item.page}
+//                 onClick={() => {
+//                   go(item.page);
+//                   setOpen(false);
+//                 }}
+//                 className={`rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
+//                   page === item.page
+//                     ? "bg-[#edf6ff] text-[#174f84] font-semibold"
+//                     : "text-slate-700 hover:bg-slate-50"
+//                 }`}
+//               >
+//                 {item.label}
+//               </button>
+//             ))}
+
+//             {/* Mobile CTA */}
+//             <div className="pt-2">
+//               <button
+//                 onClick={() => {
+//                   go("calculator");
+//                   setOpen(false);
+//                 }}
+//                 className="button-primary w-full justify-center py-3"
+//               >
+//                 <Icon name="calculator" size={17} />
+//                 <span>Open calculator</span>
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </header>
+//   );
+// }
+
+
 import React, { useState } from "react";
 import type { Page } from "../../types";
 import { navItems } from "../../data/navigation";
@@ -13,41 +113,37 @@ export function Navbar({ page, go }: NavbarProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl transition-all">
+    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
       <div className="site-container flex h-[72px] items-center justify-between">
-        <Logo onClick={() => go("home")} />
+        {/* Logo */}
+        <div className="shrink-0">
+          <Logo onClick={() => {
+            go("home");
+            setOpen(false);
+          }} />
+        </div>
 
         {/* Desktop Navigation */}
         <nav
-          className="hidden items-center gap-1 lg:flex"
+          className="hidden flex-1 items-center justify-center gap-2 lg:flex"
           aria-label="Main Navigation"
         >
           {navItems.map((item) => (
             <button
               key={item.page}
               onClick={() => go(item.page)}
-              className={`nav-link ${page === item.page ? "active" : ""}`}
+              className={`nav-link whitespace-nowrap ${
+                page === item.page ? "active" : ""
+              }`}
             >
               {item.label}
             </button>
           ))}
         </nav>
 
-        {/* Desktop CTA */}
-        <div className="hidden items-center gap-3 lg:flex">
-          <button
-            onClick={() => go("calculator")}
-            className="button-primary h-10 px-5 shadow-sm"
-          >
-            <Icon name="calculator" size={16} />
-            <span>Open calculator</span>
-            <Icon name="arrow" size={15} />
-          </button>
-        </div>
-
         {/* Mobile Hamburger */}
         <button
-          className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50 lg:hidden"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50 lg:hidden"
           onClick={() => setOpen(!open)}
           aria-label={open ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={open}
@@ -77,8 +173,8 @@ export function Navbar({ page, go }: NavbarProps) {
               </button>
             ))}
 
-            {/* Mobile CTA */}
-            <div className="pt-2">
+            {/* Mobile Calculator CTA - Only inside Hamburger */}
+            <div className="pt-3">
               <button
                 onClick={() => {
                   go("calculator");
@@ -88,6 +184,7 @@ export function Navbar({ page, go }: NavbarProps) {
               >
                 <Icon name="calculator" size={17} />
                 <span>Open calculator</span>
+                <Icon name="arrow" size={15} />
               </button>
             </div>
           </div>

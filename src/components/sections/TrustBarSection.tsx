@@ -26,7 +26,7 @@ const trustItems = [
 
 export function TrustBarSection() {
   return (
-    <section className="site-container py-6 sm:py-10">
+    <section className="site-container py-7">
       <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-blue-100/80 bg-gradient-to-br from-white via-[#f8fbfe] to-[#edf5fd]/60 p-5 sm:p-8 lg:p-10 shadow-xs">
         {/* Decorative background blurs */}
         <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-blue-100/50 blur-2xl" />

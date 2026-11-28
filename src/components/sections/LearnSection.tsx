@@ -36,7 +36,7 @@ interface LearnSectionProps {
 
 export function LearnSection({ go }: LearnSectionProps) {
   return (
-    <section className="relative overflow-hidden bg-white py-16 sm:py-20">
+    <section className="relative overflow-hidden bg-white py-14">
       {/* Background Decor */}
       <div className="pointer-events-none absolute -right-32 top-10 h-72 w-72 rounded-full bg-[#edf5fc]/70 blur-[100px]" />
 

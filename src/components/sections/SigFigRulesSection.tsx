@@ -76,7 +76,7 @@ const rulesData: RuleCard[] = [
 
 export function SigFigRulesSection() {
   return (
-    <section className="site-container py-12 sm:py-16">
+    <section className="site-container py-12 ">
       {/* Section Header */}
       <div className="text-center max-w-2xl mx-auto">
         <div className="eyebrow mx-auto mb-2.5">

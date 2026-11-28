@@ -37,7 +37,7 @@ export function FaqSection() {
   };
 
   return (
-    <section className="site-container py-12 sm:py-16">
+    <section className="site-container py-12 ">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto">

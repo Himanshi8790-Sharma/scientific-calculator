@@ -26,7 +26,7 @@ const audienceList = [
 
 export function AudienceSection() {
   return (
-    <section className="bg-gradient-to-b from-[#f8fbfe] to-[#edf5fc]/40 py-12 sm:pb-16 border-y border-blue-100/50">
+    <section className="bg-gradient-to-b from-[#f8fbfe] to-[#edf5fc]/40 py-12 sm:pb-10 border-y border-blue-100/50">
       <div className="site-container">
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto">
