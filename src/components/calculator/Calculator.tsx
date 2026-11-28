@@ -32,12 +32,16 @@ interface SubmittedCalculation {
   operation: Operation;
 }
 
+const initialValue = "0.004560";
+
 export function Calculator({ compact = false, initialMode = "sigfig" }: CalculatorProps) {
   const [mode, setMode] = useState<Mode>(initialMode);
-  const [value, setValue] = useState("0.004560");
+  const [value, setValue] = useState(initialValue);
   const [submittedData, setSubmittedData] = useState<SubmittedCalculation | null>(null);
-  const [figures, setFigures] = useState(3);
-  const [figuresInput, setFiguresInput] = useState("3");
+  const [figures, setFigures] = useState(() => countSignificantFigures(initialValue));
+  const [figuresInput, setFiguresInput] = useState(() =>
+    String(countSignificantFigures(initialValue)),
+  );
   const [secondValue, setSecondValue] = useState("2.1");
   const [operation, setOperation] = useState<Operation>("×");
   const [touched, setTouched] = useState(false);
@@ -93,6 +97,15 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
   // Determine whether to show the result pane on the right side
   const showResult = submittedData !== null && result !== "";
 
+  function handleValueChange(nextValue: string) {
+    setValue(nextValue);
+    const significantFigures = countSignificantFigures(nextValue);
+    if (significantFigures > 0) {
+      setFigures(significantFigures);
+      setFiguresInput(String(significantFigures));
+    }
+  }
+
   function handleSelectMode(newMode: Mode) {
     setMode(newMode);
     setSubmittedData(null);
@@ -115,7 +128,7 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
   }
 
   function useExample(example: string) {
-    setValue(example);
+    handleValueChange(example);
     setTouched(true);
     setSubmittedData(null);
   }
@@ -184,7 +197,7 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
                 aria-label="First value"
                 value={value}
                 onChange={(e) => {
-                  setValue(e.target.value);
+                  handleValueChange(e.target.value);
                   setTouched(true);
                 }}
                 onKeyDown={(e) => {
@@ -227,7 +240,7 @@ export function Calculator({ compact = false, initialMode = "sigfig" }: Calculat
               aria-label="Number input"
               value={value}
               onChange={(e) => {
-                setValue(e.target.value);
+                handleValueChange(e.target.value);
                 setTouched(true);
               }}
               onKeyDown={(e) => {
